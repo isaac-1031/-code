@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vendor — Хяналтын самбар</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:#f0f4f1; --paper:#ffffff; --sidebar:#0f1f17; --sidebar-hover:#1a3328;
+  --ink:#0f1f17; --muted:#6b7d73; --line:#e2e8e4; --soft:#f7faf8;
+  --accent:#2d7a4f; --accent-lt:#e8f5ee; --accent-2:#1a5c39;
+  --warn:#c17c10; --warn-lt:#fef3dc; --danger:#c13a3a; --danger-lt:#fdeaea;
+  --info:#2a6b9c; --info-lt:#e5f2fc;
+  --nav-text:#a8bfb3; --nav-active:#ffffff;
+  --shadow:0 2px 12px rgba(0,0,0,.07); --shadow-md:0 4px 24px rgba(0,0,0,.10);
+  --radius:12px; --radius-lg:16px;
+}
+[data-theme="dark"] {
+  --bg:#0d1510; --paper:#141f19; --sidebar:#0a1209; --sidebar-hover:#1a2e20;
+  --ink:#e0ede4; --muted:#7a9484; --line:#1e2f24; --soft:#1a2620;
+  --accent:#4da872; --accent-lt:#1a3328; --accent-2:#3d8c5e;
+  --warn:#e8a835; --warn-lt:#2a2010; --danger:#e05555; --danger-lt:#2a1515;
+  --info:#4a9fd4; --info-lt:#0d1e30;
+  --nav-text:#6b8c78; --nav-active:#e0ede4;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--ink);display:flex;min-height:100vh;font-size:14px;}
+
+/* SIDEBAR */
+.sidebar{width:230px;min-height:100vh;background:var(--sidebar);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;}
+.sidebar-logo{padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,.07);}
+.logo-wrap{display:flex;align-items:center;gap:10px;}
+.logo-icon{width:34px;height:34px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+.logo-name{color:#fff;font-size:17px;font-weight:700;}
+.logo-sub{color:var(--nav-text);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;}
+.nav-sec{padding:10px 16px 4px;color:var(--nav-text);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;margin-top:4px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 18px;color:var(--nav-text);cursor:pointer;border-left:3px solid transparent;font-size:13px;font-weight:500;transition:all .15s;}
+.nav-item:hover{color:#fff;background:var(--sidebar-hover);}
+.nav-item.active{color:var(--nav-active);background:var(--accent);border-left-color:transparent;}
+.nav-item .ni{font-size:15px;width:20px;text-align:center;flex-shrink:0;}
+.sidebar-footer{margin-top:auto;padding:14px 16px;border-top:1px solid rgba(255,255,255,.07);}
+.user-chip{display:flex;align-items:center;gap:8px;}
+.user-avatar{width:30px;height:30px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;flex-shrink:0;}
+.user-name{color:#fff;font-size:12px;font-weight:600;}
+.user-role{color:var(--nav-text);font-size:10px;}
+.logout-btn{margin-left:auto;background:none;border:none;color:var(--nav-text);cursor:pointer;font-size:16px;padding:4px;border-radius:6px;}
+.logout-btn:hover{color:#e05555;}
+
+/* MAIN */
+.main{margin-left:230px;flex:1;display:flex;flex-direction:column;min-height:100vh;}
+.topbar{background:var(--paper);border-bottom:1px solid var(--line);padding:0 24px;height:58px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:50;box-shadow:var(--shadow);}
+.page-title{font-size:16px;font-weight:700;flex:1;}
+.topbar-actions{display:flex;align-items:center;gap:8px;}
+.tb-btn{background:var(--soft);border:1px solid var(--line);color:var(--ink);padding:6px 12px;border-radius:7px;cursor:pointer;font-size:12px;font-weight:500;display:flex;align-items:center;gap:5px;font-family:inherit;}
+.tb-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+.theme-btn{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--soft);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--muted);}
+.theme-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+.content{padding:22px 24px;flex:1;}
+
+/* FILTER BAR */
+.filter-bar{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:12px 16px;display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:18px;box-shadow:var(--shadow);}
+.fgroup{display:flex;flex-direction:column;gap:3px;}
+.fgroup label{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+.fgroup select,.fgroup input[type=date],.fgroup input[type=text]{background:var(--soft);border:1px solid var(--line);color:var(--ink);padding:6px 9px;border-radius:7px;font-size:12px;font-family:inherit;outline:none;min-width:110px;}
+.fgroup select:focus,.fgroup input:focus{border-color:var(--accent);}
+.filter-actions{display:flex;gap:8px;}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:18px;}
+.kpi-card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);cursor:pointer;transition:all .18s;position:relative;overflow:hidden;}
+.kpi-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:var(--accent);}
+.kpi-card::after{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);opacity:0;transition:.18s;}
+.kpi-card:hover::after{opacity:1;}
+.kpi-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.kpi-label{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+.kpi-icon{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;background:var(--accent-lt);}
+.kpi-icon.warn{background:var(--warn-lt);}
+.kpi-icon.danger{background:var(--danger-lt);}
+.kpi-icon.info{background:var(--info-lt);}
+.kpi-value{font-size:20px;font-weight:700;letter-spacing:-.5px;line-height:1;margin-bottom:3px;}
+.kpi-sub{font-size:11px;color:var(--muted);}
+.kpi-sub.up{color:var(--accent);}
+.kpi-sub.down{color:var(--danger);}
+
+/* CHARTS */
+.chart-grid{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:18px;}
+.chart-card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.card-title{font-size:13px;font-weight:700;}
+.card-sub{font-size:11px;color:var(--muted);}
+.chart-wrap{position:relative;}
+.chart-h200{height:200px;}
+.chart-h210{height:210px;}
+.chart-tabs{display:flex;gap:3px;}
+.chart-tab{background:var(--soft);border:1px solid var(--line);color:var(--muted);padding:4px 9px;border-radius:5px;cursor:pointer;font-size:11px;font-family:inherit;font-weight:500;}
+.chart-tab.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+/* SECTION CARDS */
+.section-card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:12px;overflow:hidden;}
+.section-head{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.section-title{font-size:13px;font-weight:700;flex:1;}
+.section-tools{display:flex;gap:7px;align-items:center;flex-wrap:wrap;}
+.search-box{background:var(--soft);border:1px solid var(--line);color:var(--ink);padding:6px 10px 6px 28px;border-radius:7px;font-size:12px;font-family:inherit;outline:none;width:190px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='%236b7d73' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:9px 50%;}
+.search-box:focus{border-color:var(--accent);}
+
+table{width:100%;border-collapse:collapse;}
+th{padding:9px 12px;text-align:left;font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--line);background:var(--soft);}
+td{padding:10px 12px;border-bottom:1px solid var(--line);font-size:13px;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--accent-lt);}
+td.num{font-weight:600;}
+td.right{text-align:right;}
+
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:100px;font-size:11px;font-weight:600;}
+.badge.ok{background:var(--accent-lt);color:var(--accent);}
+.badge.warn{background:var(--warn-lt);color:var(--warn);}
+.badge.danger{background:var(--danger-lt);color:var(--danger);}
+.badge.info{background:var(--info-lt);color:var(--info);}
+.badge.muted{background:var(--soft);color:var(--muted);border:1px solid var(--line);}
+
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:all .15s;}
+.btn.primary{background:var(--accent);color:#fff;}
+.btn.primary:hover{background:var(--accent-2);}
+.btn.ghost{background:var(--soft);color:var(--ink);border:1px solid var(--line);}
+.btn.ghost:hover{background:var(--accent-lt);border-color:var(--accent);color:var(--accent);}
+.btn.danger{background:var(--danger-lt);color:var(--danger);border:1px solid var(--danger);}
+.btn.danger:hover{background:var(--danger);color:#fff;}
+.btn.sm{padding:4px 9px;font-size:11px;border-radius:5px;}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+
+.icon-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--line);background:var(--soft);color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:12px;transition:all .15s;}
+.icon-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+.icon-btn.del:hover{background:var(--danger);color:#fff;border-color:var(--danger);}
+
+.empty-state{padding:40px;text-align:center;color:var(--muted);}
+.empty-ico{font-size:32px;margin-bottom:8px;}
+.empty-state p{font-size:13px;}
+
+/* STORE BALANCE */
+.store-bal{display:flex;align-items:center;justify-content:space-between;padding:11px 18px;border-bottom:1px solid var(--line);cursor:pointer;transition:background .15s;}
+.store-bal:hover{background:var(--accent-lt);}
+.store-bal:last-child{border-bottom:none;}
+.sb-name{font-weight:600;font-size:13px;}
+.sb-city{font-size:11px;color:var(--muted);}
+.sb-nums{display:flex;gap:16px;text-align:right;}
+.sb-num-val{font-size:12px;font-weight:700;}
+.sb-num-lbl{font-size:10px;color:var(--muted);}
+.bal-pos{color:var(--danger);}
+.bal-zero{color:var(--accent);}
+
+/* TOP LIST */
+.top-row{display:flex;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);gap:9px;}
+.top-row:last-child{border-bottom:none;}
+.top-rank{width:22px;height:22px;border-radius:50%;background:var(--accent-lt);color:var(--accent);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.top-rank.gold{background:#fef3dc;color:#c17c10;}
+.top-rank.silver{background:#f0f0f0;color:#666;}
+.top-rank.bronze{background:#fde8d8;color:#a0522d;}
+.top-name{flex:1;font-size:13px;font-weight:500;}
+.top-sub{font-size:11px;color:var(--muted);}
+.top-val{font-weight:700;font-size:13px;text-align:right;}
+.score-bar{height:3px;background:var(--line);border-radius:2px;margin-top:3px;overflow:hidden;}
+.score-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s;}
+
+/* RETURN INVENTORY */
+.ret-inv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;padding:14px 18px;}
+.ret-inv-card{background:var(--warn-lt);border:1px solid var(--warn);border-radius:9px;padding:12px;}
+.ric-name{font-size:11px;font-weight:600;color:var(--warn);}
+.ric-qty{font-size:22px;font-weight:700;color:var(--warn);margin:3px 0;}
+.ric-sub{font-size:10px;color:var(--muted);}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:.2s;}
+.modal-bg.show{opacity:1;pointer-events:all;}
+.modal-box{background:var(--paper);border-radius:var(--radius-lg);width:100%;max-width:490px;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25);transform:scale(.96) translateY(10px);transition:.2s;}
+.modal-bg.show .modal-box{transform:scale(1) translateY(0);}
+.modal-header{padding:22px 22px 14px;border-bottom:1px solid var(--line);}
+.modal-title{font-size:15px;font-weight:700;}
+.modal-sub{font-size:12px;color:var(--muted);margin-top:3px;}
+.modal-body{padding:18px 22px;}
+.modal-footer{padding:14px 22px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:9px;}
+.mfield{margin-bottom:12px;}
+.mfield label{display:block;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+.mfield input,.mfield select,.mfield textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:7px;background:var(--soft);color:var(--ink);font-family:inherit;font-size:13px;outline:none;}
+.mfield input:focus,.mfield select:focus,.mfield textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(45,122,79,.1);}
+.mfield textarea{resize:vertical;min-height:65px;}
+.mrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.edit-input{background:var(--soft);border:1px solid var(--line);color:var(--ink);padding:4px 7px;border-radius:6px;font-size:12px;width:80px;outline:none;}
+.edit-input:focus{border-color:var(--accent);}
+
+.search-wrap{position:relative;}
+.suggest-drop{position:absolute;top:calc(100%+4px);left:0;right:0;background:var(--paper);border:1px solid var(--line);border-radius:9px;box-shadow:var(--shadow-md);z-index:200;max-height:240px;overflow-y:auto;display:none;}
+.suggest-drop.open{display:block;}
+.sug-item{padding:9px 12px;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:7px;}
+.sug-item:hover{background:var(--accent-lt);}
+.sug-type{font-size:10px;padding:1px 5px;border-radius:4px;background:var(--soft);color:var(--muted);font-weight:600;flex-shrink:0;}
+</style>
+</head>
+<body>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-wrap">
+      <div class="logo-icon">🌿</div>
+      <div><div class="logo-name">Vendor</div><div class="logo-sub">Удирдлагын систем</div></div>
+    </div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:6px 0;">
+    <div class="nav-sec">Үндсэн</div>
+    <div class="nav-item active" data-view="dashboard"><span class="ni">📊</span>Хяналтын самбар</div>
+    <div class="nav-sec">Агуулах</div>
+    <div class="nav-item" data-view="inventory"><span class="ni">🏭</span>Агуулах</div>
+    <div class="nav-item" data-view="return-inventory"><span class="ni">↩️</span>Буцаалтын агуулах</div>
+    <div class="nav-item" data-view="products"><span class="ni">📦</span>Бараа</div>
+    <div class="nav-sec">Борлуулалт</div>
+    <div class="nav-item" data-view="deliveries"><span class="ni">🚚</span>Хүргэлт</div>
+    <div class="nav-item" data-view="returns"><span class="ni">🔄</span>Буцаалт</div>
+    <div class="nav-item" data-view="stores"><span class="ni">🏪</span>Дэлгүүрүүд</div>
+    <div class="nav-item" data-view="settlements"><span class="ni">💼</span>Тооцооны хаалт</div>
+    <div class="nav-sec">Тохиргоо</div>
+    <div class="nav-item" data-view="reports"><span class="ni">📋</span>Тайлан & CSV</div>
+    <div class="nav-item" data-view="users"><span class="ni">👤</span>Нэвтрэх эрх</div>
+  </div>
+  <div class="sidebar-footer">
+    <div class="user-chip">
+      <div class="user-avatar" id="userAvatar">A</div>
+      <div><div class="user-name" id="userNameLabel">—</div><div class="user-role" id="userRoleLabel">—</div></div>
+      <button class="logout-btn" onclick="doLogout()" title="Гарах">⇦</button>
+    </div>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div><span class="page-title" id="pageTitle">Хяналтын самбар</span></div>
+    <div class="topbar-actions">
+      <div class="search-wrap">
+        <input class="search-box" id="globalSearch" placeholder="Хайх..." style="width:210px;">
+        <div class="suggest-drop" id="sugDrop"></div>
+      </div>
+      <button class="theme-btn" id="themeBtn">◐</button>
+    </div>
+  </div>
+
+  <div class="content" id="contentArea">
+
+    <!-- DASHBOARD -->
+    <div class="view-panel" id="view-dashboard">
+      <div class="filter-bar">
+        <div class="fgroup"><label>Эхлэх огноо</label><input type="date" id="fFrom"></div>
+        <div class="fgroup"><label>Дуусах огноо</label><input type="date" id="fTo"></div>
+        <div class="fgroup"><label>Дэлгүүр</label><select id="fStore"><option value="">Бүгд</option></select></div>
+        <div class="fgroup"><label>Бараа</label><select id="fProduct"><option value="">Бүгд</option></select></div>
+        <div class="fgroup"><label>Улирал</label><select id="fQuarter"><option value="">Бүгд</option><option value="1">I</option><option value="2">II</option><option value="3">III</option><option value="4">IV</option></select></div>
+        <div class="filter-actions">
+          <button class="btn primary" id="applyBtn">🔍 Шүүх</button>
+          <button class="btn ghost" id="resetBtn">↺</button>
+        </div>
+      </div>
+      <div class="kpi-grid" id="kpiGrid"></div>
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="card-header">
+            <div><div class="card-title">Борлуулалтын чиг хандлага</div><div class="card-sub" id="trendSub">Сараар</div></div>
+            <div class="chart-tabs">
+              <button class="chart-tab active" data-period="day">Өдөр</button>
+              <button class="chart-tab" data-period="month">Сар</button>
+              <button class="chart-tab" data-period="quarter">Улирал</button>
+              <button class="chart-tab" data-period="year">Жил</button>
+            </div>
+          </div>
+          <div class="chart-wrap chart-h210"><canvas id="trendChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="card-header"><div><div class="card-title">Барааны хувь</div><div class="card-sub">Борлуулалт</div></div></div>
+          <div class="chart-wrap chart-h210"><canvas id="pieChart"></canvas></div>
+        </div>
+      </div>
+      <div class="chart-grid">
+        <div class="section-card">
+          <div class="section-head"><div class="section-title">🏆 Шилдэг дэлгүүрүүд</div></div>
+          <div style="padding:8px 18px;" id="topStoresList"></div>
+        </div>
+        <div class="section-card">
+          <div class="section-head"><div class="section-title">💳 Тооцооны үлдэгдэл</div></div>
+          <div id="balanceList"></div>
+        </div>
+      </div>
+      <div class="section-card">
+        <div class="section-head"><div class="section-title">📊 Дэлгүүр харьцуулалт</div></div>
+        <div style="padding:14px 18px;"><div class="chart-wrap chart-h200"><canvas id="storeChart"></canvas></div></div>
+      </div>
+    </div>
+
+    <!-- INVENTORY -->
+    <div class="view-panel" id="view-inventory" style="display:none;">
+      <div class="kpi-grid" id="invKpi" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));"></div>
+      <div class="section-card">
+        <div class="section-head">
+          <div class="section-title">📦 Агуулахын үлдэгдэл</div>
+          <div class="section-tools">
+            <input class="search-box" id="invSearch" placeholder="Хайх...">
+            <button class="btn primary sm" onclick="invAddModal()">+ Нэмэх</button>
+          </div>
+        </div>
+        <table id="invTable"><thead><tr><th>Бараа</th><th>Ангилал</th><th>Үлдэгдэл</th><th>Дуусах огноо</th><th>Төлөв</th><th></th></tr></thead><tbody></tbody></table>
+      </div>
+      <div class="section-card">
+        <div class="section-head">
+          <div class="section-title">🔧 Тохируулга / Хорогдол</div>
+          <div class="section-tools"><button class="btn primary sm" onclick="scAddModal()">+ Нэмэх</button></div>
+        </div>
+        <table id="scTable"><thead><tr><th>Огноо</th><th>Бараа</th><th>Төрөл</th><th>Тоо</th><th>Шалтгаан</th><th></th></tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+
+    <!-- RETURN INVENTORY -->
+    <div class="view-panel" id="view-return-inventory" style="display:none;">
+      <div class="section-card">
+        <div class="section-head">
+          <div class="section-title">↩️ Буцаалтын агуулах</div>
+          <div class="section-title" style="font-size:11px;font-weight:400;color:var(--muted);">Дэлгүүрүүдээс буцаж ирсэн барааны тусдаа бүртгэл — Үндсэн агуулахд нөлөөгүй</div>
+        </div>
+        <div class="ret-inv-grid" id="retInvGrid"></div>
+      </div>
+      <div class="section-card">
+        <div class="section-head"><div class="section-title">📋 Буцаалтын дэлгэрэнгүй</div></div>
+        <table id="retInvTable"><thead><tr><th>Огноо</th><th>Дэлгүүр</th><th>Бараа</th><th>Тоо</th><th>Нэгж үнэ</th><th>Нийт</th><th>Шалтгаан</th><th></th></tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+
+    <!-- PRODUCTS -->
+    <div class="view-panel" id="view-products" style="display:none;">
+      <div class="section-card">
+        <div class="section-head">
+          <div class="section-title">📦 Бараа бүтээгдэхүүн</div>
+          <div class="section-tools">
+            <input class="search-box" id="pSearch" placeholder="Хайх...">
+            <select class="search-box" id="pSearchCat" style="width:130px;"><option value="">Бүх ангилал</option></select>
+            <button class="btn primary sm" onclick="productModal(null)">+ Нэмэх</button>
+          </div>
+        </div>
+        <table id="prodTable"><thead><tr><th>ID</th><th>Барааны нэр</th><th>Ангилал</th><th>Агуулах</th><th>Буцаалтын агуулах</th><th></th></tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+
+    <!-- STORES -->
+    <div class="view-panel" id="view-stores" style="display:none;">
+      <div class="section-card">
+        <div class="section-head">
+          <div class="section-title">🏪 Дэлгүүрүүд — Харилцагч + Тооцоо</div>
+          <div class="section-tools">
+            <input class="search-box" id="stSearch" placeholder="Хайх...">
+            <button class="btn primary sm" onclick="storeModal(null)">+ Нэмэх</button>
+          </div>
+        </div>
+        <table id="storeTable"><thead><tr><th>Дэлгүүр</th><th>Хот</th><th>Менежер</th><th>Утас</th><th>Хүргэлт</th><th>Буцаалт</th><th>Төлбөр</th><th>Үлдэгдэл</th><th></th></tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+
+    <!-- SETTLEMENTS -->
+    <div class="view-panel" id="view-settlements" style="display:none;">
+
+      <!-- Энэ сарын тойм карт -->
+      <div id="setMonthSummary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px;margin-bottom:14px;"></div>
+
+      <!-- Дэлгүүрийн жагсаалт -->
+      <div class="section-card">
+        <div class="section-head">
+          <div class="section-title">🏪 Дэлгүүрүүдийн тооцоо</div>
+          <div class="section-tools">
+            <input class="search-box" id="setSearch" placeholder="Дэлгүүр хайх...">
+            <span class="badge muted" id="setReadyBadge">—</span>
+          </div>
+        </div>
+        <div style="padding:7px 18px 4px;font-size:11px;color:var(--muted);">
+          Тооцоо хаах = 100% төлбөр авсантай тэнцүү. үлдэгдэл бол хаах боломжгүй. Хаагдсан дэлгүүр жагсаалтаас нуугдана.
+        </div>
+        <table id="setReadyTable">
+          <thead><tr>
+            <th>Дэлгүүр</th>
+            <th>Хот</th>
+            <th class="num">Энэ сарын үлдэгдэл</th>
+            <th class="num">Сүүлийн хаалт</th>
+            <th class="num">үлдэгдэл</th>
+            <th></th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <!-- Хаасан тооцооны түүх -->
+      <div class="section-card" style="margin-top:14px;">
+        <div class="section-head">
+          <div class="section-title">📚 Хаасан тооцооны түүх</div>
+          <div class="section-tools">
+            <select id="setHistStore" style="padding:6px 10px;border-radius:6px;border:1px solid var(--line);background:var(--paper);color:var(--ink);font-size:12px;">
+              <option value="">Бүх дэлгүүр</option>
+            </select>
+            <span class="badge muted" id="setHistBadge">—</span>
+          </div>
+        </div>
+        <table id="setHistTable"><thead><tr><th>№</th><th>Дэлгүүр</th><th>Хугацаа</th><th class="num">Хүргэлт</th><th class="num">Буцаалт</th><th class="num">Төлбөр</th><th class="num">Эцсийн</th><th>Хаасан</th><th></th></tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+
+    <!-- DELIVERIES -->
+    <div class="view-panel" id="view-deliveries" style="display:none;">
+      <div class="filter-bar" style="margin-bottom:12px;">
+        <div class="fgroup"><label>Эхлэх</label><input type="date" id="dFrom"></div>
+        <div class="fgroup"><label>Дуусах</label><input type="date" id="dTo"></div>
+        <div class="fgroup"><label>Дэлгүүр</label><select id="dStore"><option value="">Бүгд</option></select></div>
+        <div class="fgroup"><label>Бараа</label><select id="dProduct"><option value="">Бүгд</option></select></div>
+        <div class="filter-actions">
+          <button class="btn primary" onclick="loadDeliveries()">🔍</button>
+          <button class="btn ghost" onclick="['dFrom','dTo','dStore','dProduct'].forEach(i=>$(i).value='');loadDeliveries()">↺</button>
+        </div>
+      </div>
+      <div class="section-card">
+        <div class="section-head">
+          <div class="section-title">🚚 Хүргэлтийн бүртгэл</div>
+          <div class="section-tools">
+            <span class="badge muted" id="dlBadge">—</span>
+            <button class="btn primary sm" id="addDeliveryBtn">+ Нэмэх</button>
+          </div>
+        </div>
+        <table id="dlTable"><thead><tr><th>Огноо</th><th>Дэлгүүр</th><th>Бараа</th><th>Тоо</th><th>Нэгж үнэ</th><th>Нийт</th><th>Ажилтан</th><th></th></tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+
+    <!-- RETURNS -->
+    <div class="view-panel" id="view-returns" style="display:none;">
+      <div class="filter-bar" style="margin-bottom:12px;">
+        <div class="fgroup"><label>Эхлэх</label><input type="date" id="rFrom"></div>
+        <div class="fgroup"><label>Дуусах</label><input type="date" id="rTo"></div>
+        <div class="fgroup"><label>Дэлгүүр</label><select id="rStore"><option value="">Бүгд</option></select></div>
+        <div class="fgroup"><label>Бараа</label><select id="rProduct"><option value="">Бүгд</option></select></div>
+        <div class="filter-actions">
+          <button class="btn primary" onclick="loadReturns()">🔍</button>
+          <button class="btn ghost" onclick="['rFrom','rTo','rStore','rProduct'].forEach(i=>$(i).value='');loadReturns()">↺</button>
+        </div>
+      </div>
+      <div class="section-card">
+        <div class="section-head">
+          <div class="section-title">🔄 Буцаалтын бүртгэл</div>
+          <div class="section-tools">
+            <span class="badge muted" id="retBadge">—</span>
+            <button class="btn primary sm" id="addReturnBtn">+ Буцаалт нэмэх</button>
+          </div>
+        </div>
+        <table id="retTable"><thead><tr><th>Огноо</th><th>Дэлгүүр</th><th>Бараа</th><th>Тоо</th><th>Нэгж үнэ</th><th>Нийт</th><th>Шалтгаан</th><th></th></tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+
+    <!-- REPORTS -->
+    <div class="view-panel" id="view-reports" style="display:none;">
+      <div class="section-card">
+        <div class="section-head"><div class="section-title">📋 Тайлан & CSV татах</div></div>
+        <div style="padding:18px;">
+          <div class="filter-bar" style="margin-bottom:14px;">
+            <div class="fgroup"><label>Хайх</label><input class="search-box" id="rSearch" placeholder="Дэлгүүр/бараа..."></div>
+            <div class="fgroup"><label>Эхлэх</label><input type="date" id="rFromR"></div>
+            <div class="fgroup"><label>Дуусах</label><input type="date" id="rToR"></div>
+            <div class="fgroup"><label>Дэлгүүр</label><select id="rStoreR"><option value="">Бүгд</option></select></div>
+            <div class="filter-actions">
+              <button class="btn primary" onclick="previewReport()">🔍 Харах</button>
+              <button class="btn ghost" onclick="downloadCSV()">⬇ CSV</button>
+            </div>
+          </div>
+          <table id="reportTable"><thead><tr><th>#</th><th>Огноо</th><th>Дэлгүүр</th><th>Бараа</th><th>Тоо</th><th>Нэгж үнэ</th><th>Нийт</th></tr></thead><tbody></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div class="view-panel" id="view-users" style="display:none;">
+      <div class="section-card">
+        <div class="section-head">
+          <div class="section-title">👤 Нэвтрэх эрхийн удирдлага</div>
+          <div class="section-tools"><button class="btn primary sm" onclick="userModal(null)">+ Нэмэх</button></div>
+        </div>
+        <table id="userTable"><thead><tr><th>Хэрэглэгч</th><th>Эрх</th><th>Ажилтан</th><th></th></tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal">
+  <div class="modal-box">
+    <div class="modal-header"><div class="modal-title" id="mTitle"></div><div class="modal-sub" id="mSub"></div></div>
+    <div class="modal-body" id="mBody"></div>
+    <div class="modal-footer">
+      <button class="btn ghost" id="mCancel">Цуцлах</button>
+      <button class="btn primary" id="mSave">Хадгалах</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const root=document.documentElement;
+const localDateStr=()=>{const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
+const fmt=n=>new Intl.NumberFormat('mn-MN').format(Math.round(Number(n)||0));
+const fmtMoney=n=>'₮'+fmt(n);
+const css=v=>getComputedStyle(root).getPropertyValue(v).trim();
+
+// Theme
+root.setAttribute('data-theme',localStorage.getItem('theme')||'light');
+$('themeBtn').onclick=()=>{const t=root.getAttribute('data-theme')==='dark'?'light':'dark';root.setAttribute('data-theme',t);localStorage.setItem('theme',t);if(currentView==='dashboard')loadDashboard();};
+
+// User
+const user=JSON.parse(localStorage.getItem('user')||'{}');
+if(!user.userName){window.location.href='login.html';}
+$('userNameLabel').textContent=user.eName||user.userName||'—';
+$('userRoleLabel').textContent=user.role==='admin'?'Администратор':'Борлуулагч';
+$('userAvatar').textContent=(user.eName||user.userName||'?')[0].toUpperCase();
+function doLogout(){localStorage.removeItem('user');window.location.href='login.html';}
+
+// API
+async function api(path,opts={}){
+  try{const r=await fetch(path,opts);if(!r.ok)return{success:false,error:'HTTP '+r.status};return r.json();}
+  catch(e){return{success:false,error:'Серверт холбогдсонгүй'};}
+}
+
+let charts={},modalSave=null,currentView='dashboard',optionsCache={products:[],stores:[],employees:[],categories:[]};
+const destroy=n=>{if(charts[n]){charts[n].destroy();delete charts[n];}};
+
+// MODAL
+function openModal({title,sub,body,onSave,hideSave}){
+  $('mTitle').textContent=title;$('mSub').textContent=sub||'';$('mBody').innerHTML=body;modalSave=onSave;
+  $('mSave').style.display=hideSave?'none':'';$('modal').classList.add('show');
+}
+function closeModal(){$('modal').classList.remove('show');modalSave=null;}
+$('mCancel').onclick=closeModal;
+$('mSave').onclick=async()=>{if(!modalSave)return closeModal();const ok=await modalSave();if(ok)closeModal();};
+$('modal').onclick=e=>{if(e.target.id==='modal')closeModal();};
+
+// DELETE OPTIONS
+function showDeleteOptions(label,onThis,onAll){
+  openModal({title:'Устгах',sub:label,hideSave:true,body:`
+    <p style="color:var(--muted);font-size:12px;margin-bottom:12px;">Аль үйлдлийг хийх вэ?</p>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <button class="btn ghost" id="_d1" style="justify-content:flex-start;">🗑 Зөвхөн энэ бичлэгийг устгах</button>
+      <button class="btn danger" id="_d2" style="justify-content:flex-start;">⚠ Бүгдийг устгах (${label})</button>
+    </div>`});
+  $('_d1').onclick=async()=>{closeModal();await onThis();};
+  $('_d2').onclick=async()=>{if(!confirm('АНХААР: '+label+' бүх бичлэгийг устгах уу?'))return;closeModal();await onAll();};
+}
+
+// NAVIGATION
+const pageTitles={dashboard:'Хяналтын самбар',inventory:'Агуулах','return-inventory':'Буцаалтын агуулах',products:'Бараа',stores:'Дэлгүүрүүд',settlements:'Тооцооны хаалт',deliveries:'Хүргэлт',returns:'Буцаалт',reports:'Тайлан',users:'Нэвтрэх эрх'};
+document.querySelectorAll('.nav-item[data-view]').forEach(el=>{
+  el.onclick=()=>{
+    document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+    el.classList.add('active');
+    const v=el.dataset.view;
+    document.querySelectorAll('.view-panel').forEach(p=>p.style.display='none');
+    $('view-'+v).style.display='block';
+    $('pageTitle').textContent=pageTitles[v]||v;
+    currentView=v;
+    const loaders={dashboard:loadDashboard,inventory:loadInventoryView,'return-inventory':loadReturnInventory,products:loadProducts,stores:loadStores,settlements:loadSettlements,deliveries:loadDeliveries,returns:loadReturns,reports:()=>{},users:loadUsers};
+    if(loaders[v])loaders[v]();
+  };
+});
+
+// OPTIONS
+async function loadOptions(){
+  optionsCache=await api('/api/options');
+  const fill=(id,items,idK,nK)=>{const el=$(id);if(!el)return;while(el.options.length>1)el.remove(1);items.forEach(i=>{const o=document.createElement('option');o.value=i[idK];o.textContent=i[nK];el.appendChild(o);});};
+  ['fStore','dStore','rStore','rStoreR'].forEach(id=>fill(id,optionsCache.stores,'storeID','sName'));
+  ['fProduct','dProduct','rProduct'].forEach(id=>fill(id,optionsCache.products,'productID','pName'));
+  const sc=$('pSearchCat');while(sc.options.length>1)sc.remove(1);
+  optionsCache.categories.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;sc.appendChild(o);});
+}
+
+// GLOBAL SEARCH
+let st;
+$('globalSearch').addEventListener('input',e=>{
+  clearTimeout(st);const q=e.target.value.trim();
+  if(q.length<2){$('sugDrop').classList.remove('open');return;}
+  st=setTimeout(async()=>{
+    const data=await api('/api/search-suggest?q='+encodeURIComponent(q));
+    if(!Array.isArray(data)||!data.length){$('sugDrop').classList.remove('open');return;}
+    $('sugDrop').innerHTML=data.map(d=>`<div class="sug-item" data-type="${d.type}"><span class="sug-type">${d.type==='product'?'Бараа':'Дэлгүүр'}</span>${d.name}</div>`).join('');
+    $('sugDrop').classList.add('open');
+    $('sugDrop').querySelectorAll('.sug-item').forEach(item=>{item.onclick=()=>{$('sugDrop').classList.remove('open');$('globalSearch').value='';document.querySelector(`.nav-item[data-view="${item.dataset.type==='product'?'products':'stores'}"]`).click();};});
+  },300);
+});
+document.addEventListener('click',e=>{if(!e.target.closest('.search-wrap'))$('sugDrop').classList.remove('open');});
+
+// DASHBOARD
+function buildQuery(extra){const q=new URLSearchParams();const add=(k,v)=>{if(v)q.append(k,v);};add('from',$('fFrom').value);add('to',$('fTo').value);add('storeID',$('fStore').value);add('productID',$('fProduct').value);add('quarter',$('fQuarter').value);if(extra)Object.entries(extra).forEach(([k,v])=>add(k,v));return q.toString();}
+async function dashApi(path,extra){const qs=buildQuery(extra);return api(path+(qs?'?'+qs:''));}
+
+function tooltipOpts(){return{backgroundColor:css('--paper'),titleColor:css('--ink'),bodyColor:css('--ink'),borderColor:css('--accent'),borderWidth:1,padding:10,callbacks:{label:ctx=>fmtMoney(ctx.parsed.y??ctx.parsed)}};}
+function chartOpts(){return{maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:tooltipOpts()},scales:{x:{ticks:{color:css('--muted'),font:{size:10}},grid:{color:css('--line')}},y:{ticks:{color:css('--muted'),font:{size:10},callback:v=>fmt(v)},grid:{color:css('--line')}}}};}
+
+async function loadStats(){
+  const s=await dashApi('/api/stats');
+  const items=[
+    {label:'Нийт хүргэлт',val:fmtMoney(s.totalDelivered),sub:fmt(s.deliveryCount)+' удаа',ico:'🚚',nav:'deliveries'},
+    {label:'Тоо ширхэг',val:fmt(s.totalQuantity)+' ш',sub:'Дундаж: '+fmtMoney(s.avgDelivery),ico:'📦',nav:'deliveries'},
+    {label:'Буцаалт',val:fmtMoney(s.totalReturned),sub:'Буцаалтын агуулах: '+(s.totalReturnStock||0)+' ш',ico:'↩️',type:'warn',nav:'return-inventory'},
+    {label:'Авсан төлбөр',val:fmtMoney(s.totalPaid),sub:'Бүх дэлгүүрээс',ico:'💰',type:'info',nav:'stores'},
+    {label:'үлдэгдэл',val:fmtMoney(s.totalDebt),sub:s.totalDebt>0?'Тооцоо хүлээгдэж буй':'✓ Бүгд төлсөн',ico:s.totalDebt>0?'⚠':'✓',type:s.totalDebt>0?'danger':'',cls:s.totalDebt>0?'down':'up',nav:'stores'},
+    {label:'Агуулах',val:fmt(s.totalStock)+' ш',sub:fmt(s.totalProducts)+' нэр төрөл',ico:'🏭',nav:'inventory'},
+  ];
+  $('kpiGrid').innerHTML=items.map(i=>`
+    <div class="kpi-card" onclick="document.querySelector('.nav-item[data-view=${i.nav}]').click()">
+      <div class="kpi-header"><span class="kpi-label">${i.label}</span><span class="kpi-icon ${i.type||''}">${i.ico}</span></div>
+      <div class="kpi-value">${i.val}</div>
+      <div class="kpi-sub ${i.cls||''}">${i.sub}</div>
+    </div>`).join('');
+}
+
+async function loadTrend(period='month'){
+  const data=await dashApi('/api/trend',{period});
+  const pal=css('--accent');
+  destroy('trend');
+  charts.trend=new Chart($('trendChart'),{type:'line',data:{labels:data.map(d=>d.label),datasets:[{label:'Хүргэлт',data:data.map(d=>Number(d.totalSales)||0),borderColor:pal,backgroundColor:pal+'22',fill:true,tension:.35,pointBackgroundColor:pal,pointRadius:3}]},options:{...chartOpts(),maintainAspectRatio:false}});
+}
+
+async function loadProductPie(){
+  const data=await dashApi('/api/sales-by-product');
+  const top=data.slice(0,7);
+  const pal=[css('--accent'),'#4da87a','#7bbf9a','#a8d4ba','#2a6b4f','#d4ead9','#1a4f3a'];
+  destroy('pie');
+  charts.pie=new Chart($('pieChart'),{type:'doughnut',data:{labels:top.map(d=>d.pName),datasets:[{data:top.map(d=>Number(d.totalSales)||0),backgroundColor:pal,borderWidth:2,borderColor:css('--paper')}]},options:{maintainAspectRatio:false,plugins:{legend:{display:true,position:'bottom',labels:{color:css('--ink'),font:{size:10},boxWidth:10,padding:7}},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${fmtMoney(ctx.parsed)}`}}}}});
+}
+
+async function loadStoreBar(){
+  const data=await dashApi('/api/sales-by-store');
+  destroy('storeChart');
+  charts.storeChart=new Chart($('storeChart'),{type:'bar',data:{labels:data.slice(0,8).map(d=>d.sName),datasets:[{label:'Борлуулалт',data:data.slice(0,8).map(d=>Number(d.totalSales)||0),backgroundColor:css('--accent')+'cc',borderRadius:5}]},options:chartOpts()});
+}
+
+async function loadTopStores(){
+  const data=await dashApi('/api/top-stores');
+  if(!data.length){$('topStoresList').innerHTML='<div class="empty-state"><div class="empty-ico">🏪</div><p>Мэдээлэл байхгүй</p></div>';return;}
+  const max=Number(data[0].totalSales)||1;
+  const rc=i=>i===0?'gold':i===1?'silver':i===2?'bronze':'';
+  $('topStoresList').innerHTML=data.slice(0,8).map((d,i)=>`
+    <div class="top-row">
+      <div class="top-rank ${rc(i)}">${i+1}</div>
+      <div style="flex:1;"><div class="top-name">${d.sName}</div><div class="top-sub">${d.city||''} · ${fmt(d.totalQuantity)} ш</div>
+        <div class="score-bar"><div class="score-fill" style="width:${(Number(d.totalSales)/max*100).toFixed(1)}%"></div></div>
+      </div>
+      <div class="top-val">${fmtMoney(d.totalSales)}</div>
+    </div>`).join('');
+}
+
+async function loadBalanceTable(){
+  const data=await api('/api/stores');
+  if(!Array.isArray(data)){$('balanceList').innerHTML='';return;}
+  $('balanceList').innerHTML=data.slice(0,6).map(s=>{
+    const bal=Number(s.balance)||0;
+    return `<div class="store-bal" onclick="document.querySelector('.nav-item[data-view=stores]').click()">
+      <div><div class="sb-name">${s.sName}</div><div class="sb-city">${s.city||''}</div></div>
+      <div class="sb-nums">
+        <div><div class="sb-num-val">${fmtMoney(s.totalDelivered||0)}</div><div class="sb-num-lbl">Хүргэлт</div></div>
+        <div><div class="sb-num-val">${fmtMoney(s.totalPaid||0)}</div><div class="sb-num-lbl">Төлсөн</div></div>
+        <div><div class="sb-num-val ${bal>0?'bal-pos':'bal-zero'}">${fmtMoney(bal)}</div><div class="sb-num-lbl">Үлдэгдэл</div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function loadDashboard(){
+  await Promise.all([loadStats(),loadTrend(),loadProductPie(),loadStoreBar(),loadTopStores(),loadBalanceTable()]);
+}
+
+document.querySelectorAll('.chart-tab[data-period]').forEach(b=>{b.onclick=()=>{document.querySelectorAll('.chart-tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');loadTrend(b.dataset.period);};});
+$('applyBtn').onclick=loadDashboard;
+$('resetBtn').onclick=()=>{['fFrom','fTo','fStore','fProduct','fQuarter'].forEach(id=>$(id).value='');loadDashboard();};
+
+// INVENTORY
+async function loadInventoryView(){
+  const sum=await api('/api/inventory/summary');
+  const kpis=[{label:'Нэр төрөл',val:fmt(sum.rowCount),ico:'📋'},{label:'Нийт ширхэг',val:fmt(sum.totalUnits)+' ш',ico:'📦'},{label:'Дууссан',val:fmt(sum.emptyCount),ico:'⛔',type:sum.emptyCount>0?'danger':''},{label:'Бага үлдэгдэл',val:fmt(sum.lowStockCount),ico:'⚠️',type:sum.lowStockCount>0?'warn':''},{label:'Хугацаа дууссан',val:fmt(sum.expiredCount),ico:'🗑️',type:sum.expiredCount>0?'danger':''},{label:'Удахгүй дуусна',val:fmt(sum.expiringSoon),ico:'⏰',type:sum.expiringSoon>0?'warn':''}];
+  $('invKpi').innerHTML=kpis.map(i=>`<div class="kpi-card" style="cursor:default;"><div class="kpi-header"><span class="kpi-label">${i.label}</span><span class="kpi-icon ${i.type||''}">${i.ico}</span></div><div class="kpi-value" style="font-size:18px;">${i.val}</div></div>`).join('');
+  await renderInventory();await renderStockChanges();
+}
+async function renderInventory(){
+  const s=$('invSearch').value.trim();
+  const data=await api('/api/inventory'+(s?'?search='+encodeURIComponent(s):''));
+  document.querySelector('#invTable tbody').innerHTML=!data.length
+    ?'<tr><td colspan="6"><div class="empty-state"><div class="empty-ico">📦</div><p>Агуулах хоосон</p></div></td></tr>'
+    :data.map(d=>{const stock=Number(d.stock)||0;let sb=`<span class="badge ok">Хэвийн</span>`;if(stock===0)sb=`<span class="badge danger">Дууссан</span>`;else if(stock<10)sb=`<span class="badge warn">Бага</span>`;let eb='';if(d.expiryStatus==='expired')eb=`<span class="badge danger">Дууссан</span>`;else if(d.expiryStatus==='soon')eb=`<span class="badge warn">Удахгүй</span>`;
+      return `<tr><td><b>${d.pName}</b></td><td>${d.category||'—'}</td><td><input class="edit-input" type="number" value="${stock}" onchange="updateInv(${d.productID},this)" style="width:75px;"></td><td><input class="edit-input" type="date" value="${d.expiryDate?d.expiryDate.slice(0,10):''}" onchange="updateInvDate(${d.productID},this)" style="width:125px;"></td><td>${sb} ${eb}</td><td class="right"><button class="icon-btn del" onclick="delInv(${d.productID})">×</button></td></tr>`;
+    }).join('');
+}
+window.updateInv=async(pid,el)=>{
+  const row=el.closest('tr');const dateEl=row.querySelector('input[type=date]');
+  await api('/api/inventory/'+pid,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({stock:Number(el.value)||0,expiryDate:dateEl.value||null})});
+};
+window.updateInvDate=async(pid,el)=>{
+  const row=el.closest('tr');const stockEl=row.querySelector('input[type=number]');
+  await api('/api/inventory/'+pid,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({stock:Number(stockEl.value)||0,expiryDate:el.value||null})});
+};
+window.delInv=pid=>showDeleteOptions('Агуулах',
+  async()=>{const r=await api('/api/inventory/'+pid,{method:'DELETE'});if(r.success)loadInventoryView();},
+  async()=>{const r=await api('/api/inventory/all',{method:'DELETE'});if(r.success)loadInventoryView();});
+function invAddModal(){
+  openModal({title:'Агуулахд нэмэх',sub:'',
+    body:`<div class="mfield"><label>Бараа *</label><select id="iaP"><option value="">— сонгоно уу —</option>${optionsCache.products.map(p=>`<option value="${p.productID}">${p.pName}</option>`).join('')}</select></div>
+    <div class="mrow"><div class="mfield"><label>Тоо ш</label><input type="number" id="iaQ" value="0" min="0"></div><div class="mfield"><label>Дуусах огноо</label><input type="date" id="iaE"></div></div>`,
+    onSave:async()=>{if(!$('iaP').value){alert('Бараа сонгоно уу');return false;}const r=await api('/api/inventory',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({productID:$('iaP').value,stock:Number($('iaQ').value)||0,expiryDate:$('iaE').value||null})});if(r.success){loadInventoryView();return true;}alert('Алдаа');return false;}});
+}
+async function renderStockChanges(){
+  const data=await api('/api/stock-changes');
+  document.querySelector('#scTable tbody').innerHTML=!data.length
+    ?'<tr><td colspan="6"><div class="empty-state"><div class="empty-ico">🔧</div><p>Тохируулга байхгүй</p></div></td></tr>'
+    :data.map(d=>`<tr><td>${d.changeDate?d.changeDate.slice(0,10):'—'}</td><td><b>${d.pName||'—'}</b></td><td><span class="badge ${Number(d.quantity)>=0?'ok':'warn'}">${d.changeType||'adjust'}</span></td><td><b>${Number(d.quantity)>0?'+':''}${d.quantity}</b></td><td>${d.reason||'—'}</td><td class="right"><button class="icon-btn del" onclick="delSC(${d.changeID})">×</button></td></tr>`).join('');
+}
+function scAddModal(){
+  openModal({title:'Тохируулга нэмэх',sub:'',
+    body:`<div class="mfield"><label>Бараа *</label><select id="scP"><option value="">— сонгоно уу —</option>${optionsCache.products.map(p=>`<option value="${p.productID}">${p.pName}</option>`).join('')}</select></div>
+    <div class="mrow"><div class="mfield"><label>Тоо (+ нэмэх, - хасах)</label><input type="number" id="scQ" value="0"></div><div class="mfield"><label>Огноо</label><input type="date" id="scD" value="${localDateStr()}"></div></div>
+    <div class="mfield"><label>Төрөл</label><select id="scT"><option value="adjust">Тохируулга</option><option value="damage">Гэмтэл</option><option value="loss">Хорогдол</option><option value="in">Оруулалт</option></select></div>
+    <div class="mfield"><label>Шалтгаан</label><textarea id="scR" placeholder="Тайлбар..."></textarea></div>`,
+    onSave:async()=>{if(!$('scP').value){alert('Бараа сонгоно уу');return false;}const r=await api('/api/stock-changes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({productID:$('scP').value,changeType:$('scT').value,quantity:Number($('scQ').value)||0,changeDate:$('scD').value,reason:$('scR').value})});if(r.success){loadInventoryView();return true;}alert('Алдаа');return false;}});
+}
+window.delSC=id=>showDeleteOptions('Тохируулга',
+  async()=>{const r=await api('/api/stock-changes/'+id,{method:'DELETE'});if(r.success)loadInventoryView();},
+  async()=>{const r=await api('/api/stock-changes/all',{method:'DELETE'});if(r.success)loadInventoryView();});
+$('invSearch').addEventListener('input',()=>renderInventory());
+
+// RETURN INVENTORY
+async function loadReturnInventory(){
+  const data=await api('/api/return-inventory');
+  $('retInvGrid').innerHTML=!data.length
+    ?'<div class="empty-state"><div class="empty-ico">✅</div><p>Буцаалтын агуулах хоосон байна</p></div>'
+    :data.map(d=>`<div class="ret-inv-card"><div class="ric-name">↩️ ${d.pName}</div><div class="ric-qty">${fmt(d.returnStock)} ш</div><div class="ric-sub">${d.category||'—'}</div></div>`).join('');
+  const returns=await api('/api/returns');
+  document.querySelector('#retInvTable tbody').innerHTML=!Array.isArray(returns)||!returns.length
+    ?'<tr><td colspan="8"><div class="empty-state"><div class="empty-ico">↩️</div><p>Буцаалт байхгүй</p></div></td></tr>'
+    :returns.map(r=>`<tr><td>${r.returnDate?r.returnDate.slice(0,10):'—'}</td><td>${r.storeName||'—'}</td><td><b>${r.pName||'—'}</b></td><td class="num">${fmt(r.quantity)}</td><td class="num">${fmtMoney(r.unitPrice)}</td><td class="num">${fmtMoney(r.totalAmount)}</td><td>${r.reason||'—'}</td><td class="right"><button class="icon-btn del" onclick="delRetInv(${r.returnID})">×</button></td></tr>`).join('');
+}
+window.delRetInv=id=>showDeleteOptions('Буцаалтын бичлэг',
+  async()=>{const r=await api('/api/returns/'+id,{method:'DELETE'});if(r.success)loadReturnInventory();},
+  async()=>{const r=await api('/api/returns/all',{method:'DELETE'});if(r.success)loadReturnInventory();});
+
+// PRODUCTS
+async function loadProducts(){
+  const s=$('pSearch').value.trim(),cat=$('pSearchCat').value;
+  let url='/api/inventory';if(s||cat)url+='?'+(s?'search='+encodeURIComponent(s):'')+(s&&cat?'&':'')+(cat?'category='+encodeURIComponent(cat):'');
+  const inv=await api(url);
+  const ri=await api('/api/return-inventory');const rm={};ri.forEach(r=>rm[r.productID]=r.returnStock);
+  document.querySelector('#prodTable tbody').innerHTML=!inv.length
+    ?'<tr><td colspan="6"><div class="empty-state"><div class="empty-ico">📦</div><p>Бараа байхгүй</p></div></td></tr>'
+    :inv.map(d=>`<tr><td class="num">${d.productID}</td><td><b>${d.pName}</b></td><td>${d.category||'—'}</td><td class="num">${fmt(d.stock||0)} ш</td><td class="num">${fmt(rm[d.productID]||0)} ш</td><td class="right" style="display:flex;gap:5px;justify-content:flex-end;"><button class="icon-btn" onclick="productModal(${JSON.stringify({productID:d.productID,pName:d.pName,category:d.category}).replace(/"/g,'&quot;')})">✏</button><button class="icon-btn del" onclick="delProduct(${d.productID})">×</button></td></tr>`).join('');
+}
+function productModal(p){
+  openModal({title:p?'Бараа засах':'Бараа нэмэх',sub:'',
+    body:`<div class="mfield"><label>Барааны нэр *</label><input id="pN" value="${p?p.pName:''}" placeholder="Нэр"></div>
+    <div class="mfield"><label>Ангилал</label><input id="pC" value="${p?p.category||'':''}" placeholder="Ангилал"></div>`,
+    onSave:async()=>{const nm=$('pN').value.trim();if(!nm){alert('Нэр оруулна уу');return false;}const body={pName:nm,category:$('pC').value.trim()||null};const r=p?await api('/api/products/'+p.productID,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}):await api('/api/products',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(r.success){loadProducts();loadOptions();return true;}alert('Алдаа: '+(r.error||''));return false;}});
+}
+window.delProduct=id=>showDeleteOptions('Бараа',
+  async()=>{const r=await api('/api/products/'+id,{method:'DELETE'});if(r.success){loadProducts();loadOptions();}else alert('Алдаа: '+(r.error||''));},
+  async()=>{const r=await api('/api/products/all',{method:'DELETE'});if(r.success){loadProducts();loadOptions();}});
+$('pSearch').addEventListener('input',()=>loadProducts());
+$('pSearchCat').addEventListener('change',()=>loadProducts());
+
+// STORES
+let storesData=[];
+async function loadStores(){
+  const s=$('stSearch').value.trim().toLowerCase();
+  const data=await api('/api/stores');storesData=data;
+  const filtered=s?data.filter(d=>d.sName.toLowerCase().includes(s)||((d.city||'').toLowerCase().includes(s))):data;
+  document.querySelector('#storeTable tbody').innerHTML=!filtered.length
+    ?'<tr><td colspan="9"><div class="empty-state"><div class="empty-ico">🏪</div><p>Дэлгүүр байхгүй</p></div></td></tr>'
+    :filtered.map(s=>{const bal=Number(s.balance)||0;return`<tr><td><b style="cursor:pointer;color:var(--accent);" onclick="storeDetails(${s.storeID})">${s.sName}</b></td><td>${s.city||'—'}</td><td>${s.manager||'—'}</td><td>${s.phone||'—'}</td><td class="num">${fmtMoney(s.totalDelivered||0)}</td><td class="num">${fmtMoney(s.totalReturned||0)}</td><td class="num">${fmtMoney(s.totalPaid||0)}</td><td class="num"><b style="${bal>0?'color:var(--danger)':''}">${fmtMoney(bal)}</b></td><td class="right" style="display:flex;gap:4px;justify-content:flex-end;"><button class="icon-btn" onclick="storeModal(${s.storeID})">✏</button><button class="icon-btn del" onclick="delStore(${s.storeID})">×</button></td></tr>`;}).join('');
+}
+$('stSearch').addEventListener('input',()=>loadStores());
+function storeModal(id){
+  const s=id?storesData.find(x=>x.storeID===id):null;
+  openModal({title:s?'Дэлгүүр засах':'Дэлгүүр нэмэх',sub:'',
+    body:`<div class="mfield"><label>Дэлгүүрийн нэр *</label><input id="stN" value="${s?s.sName:''}" placeholder="Нэр"></div>
+    <div class="mrow"><div class="mfield"><label>Хот</label><input id="stC" value="${s?s.city||'':''}" placeholder="Хот"></div><div class="mfield"><label>Утас</label><input id="stP" value="${s?s.phone||'':''}" placeholder="Утас"></div></div>
+    <div class="mrow"><div class="mfield"><label>Менежер</label><input id="stM" value="${s?s.manager||'':''}" placeholder="Менежер"></div><div class="mfield"><label>Нээсэн огноо</label><input type="date" id="stO" value="${s?s.openDate?s.openDate.slice(0,10):'':''}"></div></div>
+    <div class="mfield"><label>Хаяг</label><input id="stA" value="${s?s.address||'':''}" placeholder="Хаяг"></div>`,
+    onSave:async()=>{const nm=$('stN').value.trim();if(!nm){alert('Нэр оруулна уу');return false;}const body={sName:nm,city:$('stC').value||null,phone:$('stP').value||null,manager:$('stM').value||null,openDate:$('stO').value||null,address:$('stA').value||null};const r=s?await api('/api/stores/'+s.storeID,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}):await api('/api/stores',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(r.success){loadStores();loadOptions();return true;}alert('Алдаа');return false;}});
+}
+window.delStore=id=>showDeleteOptions('Дэлгүүр',
+  async()=>{const r=await api('/api/stores/'+id,{method:'DELETE'});if(r.success){loadStores();loadOptions();}},
+  async()=>{const r=await api('/api/stores/all',{method:'DELETE'});if(r.success){loadStores();loadOptions();}});
+window.storeDetails=async(id)=>{
+  const d=await api('/api/stores/'+id+'/details');const s=d.store||{};const pays=d.payments||[];const prs=d.prices||[];
+  openModal({title:'🏪 '+s.sName,sub:(s.city||'')+(s.manager?' · '+s.manager:''),hideSave:true,
+    body:`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:14px;">
+      <div style="background:var(--accent-lt);padding:10px;border-radius:8px;text-align:center;"><div style="font-size:10px;color:var(--muted);">Нийт хүргэлт</div><div style="font-size:14px;font-weight:700;">${fmtMoney(s.totalDelivered||0)}</div></div>
+      <div style="background:var(--danger-lt);padding:10px;border-radius:8px;text-align:center;"><div style="font-size:10px;color:var(--muted);">үлдэгдэл</div><div style="font-size:14px;font-weight:700;color:var(--danger);">${fmtMoney(s.balance||0)}</div></div>
+      <div style="background:var(--info-lt);padding:10px;border-radius:8px;text-align:center;"><div style="font-size:10px;color:var(--muted);">Төлсөн</div><div style="font-size:14px;font-weight:700;">${fmtMoney(s.totalPaid||0)}</div></div>
+    </div>
+    <div style="font-weight:700;font-size:12px;margin-bottom:6px;">💰 Гараар төлбөр</div>
+    <div style="max-height:110px;overflow-y:auto;margin-bottom:10px;">${pays.length?pays.map(p=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--line);font-size:12px;"><span>${p.paymentDate?p.paymentDate.slice(0,10):'—'} ${p.notes?'· '+p.notes:''}</span><span style="font-weight:700;">${fmtMoney(p.amount)} <button class="icon-btn del sm" onclick="delPayment(${p.paymentID},${id})" style="width:20px;height:20px;font-size:10px;">×</button></span></div>`).join(''):'<div style="color:var(--muted);font-size:12px;padding:6px 0;">Төлбөр байхгүй</div>'}</div>
+    <button class="btn ghost sm" style="margin-bottom:14px;" onclick="addPayModal(${id})">+ Төлбөр нэмэх</button>
+    <div style="font-weight:700;font-size:12px;margin-bottom:6px;">🏷 Тохирсон үнэ</div>
+    <div style="max-height:110px;overflow-y:auto;">${prs.length?prs.map(p=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--line);font-size:12px;"><span>${p.pName}</span><span style="font-weight:700;">${fmtMoney(p.agreedPrice)}</span></div>`).join(''):'<div style="color:var(--muted);font-size:12px;padding:6px 0;">Тохирсон үнэ байхгүй</div>'}</div>
+    <button class="btn ghost sm" style="margin-top:8px;" onclick="addPrice(${id})">➕ Тохирсон үнэ нэмэх</button>`});
+};
+window.addPayModal=storeID=>{closeModal();setTimeout(()=>openModal({title:'💰 Төлбөр нэмэх',sub:'',body:`<div class="mrow"><div class="mfield"><label>Дүн (₮) *</label><input type="number" id="pyA" value="0"></div><div class="mfield"><label>Огноо *</label><input type="date" id="pyD" value="${localDateStr()}"></div></div><div class="mfield"><label>Тэмдэглэл</label><input id="pyN" placeholder="..."></div>`,onSave:async()=>{const r=await api('/api/payments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({storeID,amount:Number($('pyA').value)||0,paymentDate:$('pyD').value,notes:$('pyN').value||null})});if(r.success){loadStores();return true;}alert('Алдаа');return false;}}),100);};
+window.delPayment=(payID,storeID)=>showDeleteOptions('Төлбөр',
+  async()=>{const r=await api('/api/payments/'+payID,{method:'DELETE'});if(r.success){loadStores();closeModal();storeDetails(storeID);}},
+  async()=>{const r=await api('/api/payments/all',{method:'DELETE'});if(r.success){loadStores();closeModal();}});
+window.addPrice=storeID=>{closeModal();setTimeout(()=>openModal({title:'➕ Тохирсон үнэ нэмэх',sub:'',body:`<div class="mfield"><label>Бараа *</label><select id="spP">${optionsCache.products.map(p=>`<option value="${p.productID}">${p.pName}</option>`).join('')}</select></div><div class="mfield"><label>Тохирсон үнэ (₮) *</label><input type="number" id="spPr" value="0" min="0"></div><div class="mfield"><label>Тэмдэглэл</label><input id="spN" placeholder="Нэмэлт..."></div>`,onSave:async()=>{const price=Number($('spPr').value)||0;if(!price){alert('Үнэ оруулна уу');return false;}const r=await api('/api/store-prices',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({storeID,productID:$('spP').value,agreedPrice:price,notes:$('spN').value||null})});if(r.success){closeModal();setTimeout(()=>storeDetails(storeID),120);return true;}alert('Алдаа: '+(r.error||''));return false;}}),100);};
+
+// ════════════════════════════════════════════════════════════════
+// SETTLEMENTS — Тооцооны хаалт (шинэ хувилбар)
+// ════════════════════════════════════════════════════════════════
+
+// Одоогийн сарын эхлэл/төгсгөл
+function thisMonthRange(){
+  const d=new Date(); const y=d.getFullYear(); const m=String(d.getMonth()+1).padStart(2,'0');
+  return {start:`${y}-${m}-01`, end:`${y}-${m}-${new Date(y,d.getMonth()+1,0).getDate().toString().padStart(2,'0')}`, label:`${y}/${m}`};
+}
+// Өнгөрсөн сарын эхлэл/төгсгөл (closing modal-д default)
+function lastMonthRange(){
+  const d=new Date(new Date().getFullYear(), new Date().getMonth(), 0); // өнгөрсөн сарын сүүлийн өдөр
+  const y=d.getFullYear(); const m=String(d.getMonth()+1).padStart(2,'0');
+  return {start:`${y}-${m}-01`, end:`${y}-${m}-${d.getDate().toString().padStart(2,'0')}`};
+}
+
+async function loadSettlements(){
+  await Promise.all([loadSettleMonthSummary(), loadSettleReady(), loadSettleHistory()]);
+  const sel=$('setHistStore'); if(sel){
+    while(sel.options.length>1) sel.remove(1);
+    optionsCache.stores.forEach(s=>{const o=document.createElement('option');o.value=s.storeID;o.textContent=s.sName;sel.appendChild(o);});
+    sel.onchange=loadSettleHistory;
+  }
+  const sb=$('setSearch'); if(sb) sb.oninput=()=>loadSettleReady();
+}
+
+// ── Энэ сарын тойм карт ──────────────────────────────────────
+async function loadSettleMonthSummary(){
+  const mr=thisMonthRange();
+  const [allStores, histData] = await Promise.all([
+    api('/api/stores'),
+    api('/api/settlements?from='+mr.start+'&to='+mr.end)
+  ]);
+  if(!Array.isArray(allStores)){$('setMonthSummary').innerHTML='';return;}
+  const totalStores=allStores.length;
+  // Энэ сард хаасан тооцооны storeID-уудыг цуглуулна
+  const closedStoreIds=new Set((Array.isArray(histData)?histData:[]).map(s=>String(s.storeID)));
+  const closedCount=closedStoreIds.size;
+  const openCount=totalStores-closedCount;
+  // Нийт нээлттэй үлдэгдэл (хаагдаагүй дэлгүүрүүдийн balance)
+  const openDebt=allStores.filter(s=>!closedStoreIds.has(String(s.storeID))).reduce((a,s)=>a+Math.max(0,Number(s.balance)||0),0);
+  // Хаасан тооцооны нийт дүн
+  const closedDebt=(Array.isArray(histData)?histData:[]).reduce((a,s)=>a+Math.abs(Number(s.finalDebt)||0),0);
+  const items=[
+    {ico:'🏪',label:'Нийт дэлгүүр',val:totalStores,sub:mr.label+' сар',type:''},
+    {ico:'✅',label:'Тооцоо хаасан',val:closedCount,sub:'Энэ сард',type:'ok'},
+    {ico:'⏳',label:'Хаагдаагүй',val:openCount,sub:'Дутуу дэлгүүр',type:openCount>0?'warn':''},
+    {ico:'💸',label:'үлдэгдэл',val:fmtMoney(openDebt),sub:'Хаагдаагүй нийт',type:openDebt>0?'danger':''},
+    {ico:'📦',label:'Хаагдсан дүн',val:fmtMoney(closedDebt),sub:'Энэ сарын хаасан',type:'info'},
+  ];
+  $('setMonthSummary').innerHTML=items.map(i=>`
+    <div class="kpi-card" style="cursor:default;">
+      <div class="kpi-header"><span class="kpi-label">${i.label}</span><span class="kpi-icon ${i.type}">${i.ico}</span></div>
+      <div class="kpi-value" style="font-size:18px;">${i.val}</div>
+      <div class="kpi-sub">${i.sub}</div>
+    </div>`).join('');
+}
+
+// ── Дэлгүүрийн жагсаалт (нээлттэй тооцоотой дэлгүүрүүд) ────
+async function loadSettleReady(){
+  const mr=thisMonthRange();
+  const [allStores, histData] = await Promise.all([
+    api('/api/stores'),
+    api('/api/settlements')
+  ]);
+  if(!Array.isArray(allStores)){$('setReadyTable').querySelector('tbody').innerHTML='';return;}
+  const q=($('setSearch')?.value||'').toLowerCase();
+
+  // Хаагдсан тооцооны сүүлийн огноо per дэлгүүр
+  const lastClosed={};
+  if(Array.isArray(histData)){
+    histData.forEach(h=>{
+      const sid=String(h.storeID);
+      const pe=h.periodEnd?String(h.periodEnd).slice(0,10):'';
+      if(!lastClosed[sid]||pe>lastClosed[sid]) lastClosed[sid]=pe;
+    });
+  }
+
+  // Зөвхөн нээлттэй гүйлгээтэй дэлгүүрүүдийг харуулна (хаагдсанаас хасна)
+  // "хаасан" гэдэг нь өнгөрсөн + энэ сарын бүх гүйлгээ тооцоолж хаасан = balance 0
+  const filtered=allStores.filter(s=>{
+    const hasActivity=Number(s.totalDelivered||0)+Number(s.totalReturned||0)+Number(s.totalPaid||0)>0;
+    if(!hasActivity) return false;
+    if(q && !(s.sName||'').toLowerCase().includes(q) && !(s.city||'').toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  $('setReadyBadge').textContent=filtered.length+' дэлгүүр';
+
+  // Энэ сарын running balance-г preview API-аас авна (async, loading-тай)
+  const tbody=$('setReadyTable').querySelector('tbody');
+  tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:18px;">⏳ Ачааллаж байна...</td></tr>';
+
+  if(!filtered.length){
+    tbody.innerHTML='<tr><td colspan="6"><div class="empty-state"><div class="empty-ico">✓</div><p>Нээлттэй тооцоо алга</p></div></td></tr>';
+    return;
+  }
+
+  // Энэ сарын preview дэлгүүр бүрт авна
+  const previews=await Promise.all(filtered.map(s=>
+    api(`/api/settlements/preview?storeID=${s.storeID}&periodStart=${mr.start}&periodEnd=${mr.end}`)
+      .catch(()=>({totalDelivered:0,totalReturned:0,totalPaid:0,finalDebt:0}))
+  ));
+
+  tbody.innerHTML=filtered.map((s,i)=>{
+    const pv=previews[i]||{};
+    const monthBal=Number(pv.finalDebt)||0;
+    const totalBal=Number(s.balance)||0; // нийт нээлттэй үлдэгдэл
+    const canClose=Math.abs(totalBal)<0.01;
+    const lastClose=lastClosed[String(s.storeID)]||'—';
+    const balColor=totalBal>0.01?'color:var(--danger)':totalBal<-0.01?'color:var(--info)':'color:var(--accent)';
+    const mBalColor=monthBal>0.01?'color:var(--danger)':monthBal<-0.01?'color:var(--info)':'color:var(--accent)';
+
+    const cashBtn=`<button class="btn ghost sm" onclick="settleCashModal(${s.storeID},'${(s.sName||'').replace(/'/g,"\\'")}',${totalBal})" title="Бэлэн мөнгөөр төлбөр бүртгэх">💵 Бэлэн</button>`;
+    const closeBtn=canClose
+      ? `<button class="btn primary sm" onclick="settleCloseModal(${s.storeID},'${(s.sName||'').replace(/'/g,"\\'")}')">💼 Хаах</button>`
+      : `<button class="btn ghost sm" onclick="settleCloseModal(${s.storeID},'${(s.sName||'').replace(/'/g,"\\'")}')">🔍 Хаах</button>`;
+
+    return `<tr>
+      <td><b>${s.sName}</b><div style="font-size:11px;color:var(--muted);">${s.city||''}</div></td>
+      <td class="num"><b style="${mBalColor}">${fmtMoney(monthBal)}</b><div style="font-size:10px;color:var(--muted);">Хүр: ${fmtMoney(pv.totalDelivered||0)} / Төл: ${fmtMoney(pv.totalPaid||0)}</div></td>
+      <td class="num" style="font-size:12px;color:var(--muted);">${lastClose}</td>
+      <td class="num"><b style="${balColor}">${fmtMoney(totalBal)}</b></td>
+      <td class="right" style="display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap;">${cashBtn}${closeBtn}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Бэлэн мөнгөний modal ─────────────────────────────────────
+window.settleCashModal=(storeID,sName,currentDebt)=>{
+  openModal({title:'💵 Бэлэн мөнгөөр төлбөр',sub:sName,
+    body:`<div style="background:var(--warn-lt);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;">
+        <b>Нийт нээлттэй үлдэгдэл:</b> <span style="color:var(--danger);font-weight:700;">${fmtMoney(currentDebt)}</span>
+      </div>
+      <div class="mrow">
+        <div class="mfield"><label>Дүн (₮) *</label><input type="number" id="cashAmt" value="${currentDebt>0?Math.round(currentDebt):0}" min="0" step="100"></div>
+        <div class="mfield"><label>Огноо *</label><input type="date" id="cashDate" value="${localDateStr()}"></div>
+      </div>
+      <div class="mfield"><label>Тэмдэглэл</label><input id="cashNotes" placeholder="Жнь: Бэлэн мөнгөөр авлаа..."></div>`,
+    onSave:async()=>{
+      const amt=Number($('cashAmt').value)||0;
+      if(!amt||amt<=0){alert('Дүн оруулна уу');return false;}
+      const r=await api('/api/payments',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({storeID,amount:amt,paymentDate:$('cashDate').value,notes:$('cashNotes').value||'Бэлэн мөнгө'})});
+      if(r.success){loadSettlements();loadStores();return true;}
+      alert('Алдаа: '+(r.error||''));return false;
+    }});
+};
+
+// ── Хаасан тооцооны түүх ─────────────────────────────────────
+async function loadSettleHistory(){
+  const sid=$('setHistStore')?.value||'';
+  const data=await api('/api/settlements'+(sid?'?storeID='+sid:''));
+  if(!Array.isArray(data)){$('setHistTable').querySelector('tbody').innerHTML='';return;}
+  $('setHistBadge').textContent=data.length+' тооцоо';
+  $('setHistTable').querySelector('tbody').innerHTML=!data.length
+    ? '<tr><td colspan="9"><div class="empty-state"><div class="empty-ico">📭</div><p>Хаасан тооцоо алга</p></div></td></tr>'
+    : data.map((s,i)=>{
+        const ps=s.periodStart?String(s.periodStart).slice(0,10):'—';
+        const pe=s.periodEnd?String(s.periodEnd).slice(0,10):'—';
+        const ca=s.closedAt?String(s.closedAt).slice(0,16).replace('T',' '):'—';
+        return `<tr>
+          <td>${i+1}</td>
+          <td><b>${s.storeName||'—'}</b></td>
+          <td><span style="font-size:11px;">${ps} → ${pe}</span></td>
+          <td class="num">${fmtMoney(s.totalDelivered)}</td>
+          <td class="num">${fmtMoney(s.totalReturned)}</td>
+          <td class="num">${fmtMoney(s.totalPaid)}</td>
+          <td class="num"><b style="color:${Math.abs(Number(s.finalDebt)||0)<0.01?'var(--accent)':'var(--danger)'}">${fmtMoney(s.finalDebt)}</b></td>
+          <td><span style="font-size:11px;">${s.closedBy||'—'}<br><span style="color:var(--muted);">${ca}</span></span></td>
+          <td class="right" style="display:flex;gap:4px;justify-content:flex-end;">
+            <button class="icon-btn" title="Дэлгэрэнгүй/Хэвлэх" onclick="settleDetails(${s.settlementID})">👁</button>
+            <button class="icon-btn del" title="Буцаан нээх" onclick="settleReopen(${s.settlementID})">↺</button>
+          </td>
+        </tr>`;
+      }).join('');
+}
+
+// ── Хаалтын modal (шинэ: өнгөрсөн сар default, бүх гүйлгээ харуулна) ─
+window.settleCloseModal=(storeID,sName)=>{
+  const lr=lastMonthRange();
+  openModal({title:'💼 Тооцоо хаах',sub:sName,
+    body:`<div class="mrow">
+      <div class="mfield"><label>Эхлэх огноо *</label><input type="date" id="setPS" value="${lr.start}"></div>
+      <div class="mfield"><label>Дуусах огноо *</label><input type="date" id="setPE" value="${lr.end}"></div>
+    </div>
+    <div class="mfield"><label>Тэмдэглэл</label><input id="setNotes" placeholder="Жнь: Менежер Б. зөвшөөрсөн"></div>
+    <button class="btn primary sm" id="setPrevBtn" style="margin-bottom:10px;">🔍 Гүйлгээ шалгах</button>
+    <div id="setPrevBox" style="background:var(--soft);border-radius:8px;padding:12px;font-size:13px;display:none;"></div>`,
+    onSave:async()=>{
+      const ps=$('setPS').value, pe=$('setPE').value;
+      if(!ps||!pe){alert('Хугацаа оруулна уу');return false;}
+      if(ps>pe){alert('Эхлэх огноо нь дуусах огнооноос их байна');return false;}
+      const pv=await api(`/api/settlements/preview?storeID=${storeID}&periodStart=${ps}&periodEnd=${pe}`);
+      if(!pv.canClose){
+        alert('⚠ Тооцоог хаах боломжгүй!\nүлдэгдэл: '+fmtMoney(pv.finalDebt||0)+'\n\nЭхлээд бүх төлбөрийг бүртгэнэ үү.');
+        return false;
+      }
+      if(!confirm('Энэ хугацааны тооцоог хаахдаа итгэлтэй байна уу?\n'+sName+'\n'+ps+' → '+pe+'\n\nХаасны дараа эдгээр гүйлгээ үндсэн харагдацаас нуугдана.'))return false;
+      const r=await api('/api/settlements/close',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({storeID,periodStart:ps,periodEnd:pe,closedBy:user.userName,notes:$('setNotes').value||null})});
+      if(r.success){
+        loadSettlements();
+        return true;
+      }
+      alert('⚠ '+(r.error||'Алдаа гарлаа'));
+      return false;
+    }});
+
+  // Гүйлгээ шалгах + харуулах товч
+  setTimeout(()=>{
+    const btn=$('setPrevBtn');
+    if(!btn) return;
+    btn.onclick=async()=>{
+      const ps=$('setPS').value, pe=$('setPE').value;
+      if(!ps||!pe){alert('Хугацаа оруулна уу');return;}
+      btn.disabled=true; btn.textContent='⏳...';
+      const [pv, detail] = await Promise.all([
+        api(`/api/settlements/preview?storeID=${storeID}&periodStart=${ps}&periodEnd=${pe}`),
+        api(`/api/settlements/preview?storeID=${storeID}&periodStart=${ps}&periodEnd=${pe}`)
+          .then(()=>api(`/api/stores/${storeID}/details`)).catch(()=>({deliveries:[],returns:[],payments:[]}))
+      ]);
+      btn.disabled=false; btn.textContent='🔍 Гүйлгээ шалгах';
+      const box=$('setPrevBox');
+      const dbt=Number(pv.finalDebt)||0;
+      const dbtColor=pv.canClose?'var(--accent)':'var(--danger)';
+
+      // Delivery, Return, Payment жагсаалт хэрэгтэй бол settings API-аас авна
+      const dels=await api(`/api/deliveries?storeID=${storeID}&from=${ps}&to=${pe}`).catch(()=>[]);
+      const rets=await api(`/api/returns?storeID=${storeID}&from=${ps}&to=${pe}`).catch(()=>[]);
+      const pays=await api(`/api/payments?storeID=${storeID}&from=${ps}&to=${pe}`).catch(()=>[]);
+
+      const delRows=Array.isArray(dels)&&dels.length
+        ? dels.map(x=>`<tr><td>${(x.deliveryDate||'').slice(0,10)}</td><td>${x.pName||'—'}</td><td class="num">${fmt(x.quantity)}</td><td class="num">${fmtMoney(x.totalPrice)}</td></tr>`).join('')
+        : '<tr><td colspan="4" style="color:var(--muted);">Хүргэлт алга</td></tr>';
+      const retRows=Array.isArray(rets)&&rets.length
+        ? rets.map(x=>`<tr><td>${(x.returnDate||'').slice(0,10)}</td><td>${x.pName||'—'}</td><td class="num">${fmt(x.quantity)}</td><td class="num">${fmtMoney(x.totalAmount)}</td></tr>`).join('')
+        : '<tr><td colspan="4" style="color:var(--muted);">Буцаалт алга</td></tr>';
+      const payRows=Array.isArray(pays)&&pays.length
+        ? pays.map(x=>`<tr><td>${(x.paymentDate||'').slice(0,10)}</td><td colspan="2">${x.notes||'—'}</td><td class="num">${fmtMoney(x.amount)}</td></tr>`).join('')
+        : '<tr><td colspan="4" style="color:var(--muted);">Төлбөр алга</td></tr>';
+
+      box.innerHTML=`
+        <div style="font-weight:700;font-size:11px;color:var(--muted);margin-bottom:6px;">📋 ДҮГНЭЛТ</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;font-size:12px;margin-bottom:10px;">
+          <div>🚚 Хүргэлт (${pv.deliveryCount} удаа)</div><div class="num"><b>${fmtMoney(pv.totalDelivered)}</b></div>
+          <div>↩️ Буцаалт (${pv.returnCount} удаа)</div><div class="num" style="color:var(--danger);">${fmtMoney(pv.totalReturned)}</div>
+          <div>💰 Төлбөр (${pv.paymentCount} удаа)</div><div class="num" style="color:var(--accent);">${fmtMoney(pv.totalPaid)}</div>
+          <div style="border-top:1px solid var(--line);padding-top:5px;font-weight:700;">= үлдэгдэл</div>
+          <div class="num" style="border-top:1px solid var(--line);padding-top:5px;font-weight:700;color:${dbtColor};">${fmtMoney(dbt)}</div>
+        </div>
+        <div style="padding:8px;border-radius:6px;background:${pv.canClose?'var(--accent-lt)':'var(--danger-lt)'};color:${dbtColor};font-weight:700;text-align:center;font-size:12px;margin-bottom:10px;">
+          ${pv.canClose?'✅ 100% төлөгдсөн — хаахад бэлэн':'⛔ үлдэгдэлтэй — хаах боломжгүй. Эхлээд бэлэн мөнгөний төлбөр нэмнэ үү.'}
+        </div>
+        <details style="font-size:11px;"><summary style="cursor:pointer;color:var(--muted);margin-bottom:4px;">🚚 Хүргэлтийн дэлгэрэнгүй</summary>
+          <div style="max-height:110px;overflow-y:auto;margin-top:4px;"><table style="width:100%;"><thead><tr><th style="text-align:left;">Огноо</th><th>Бараа</th><th class="num">Тоо</th><th class="num">Дүн</th></tr></thead><tbody>${delRows}</tbody></table></div></details>
+        <details style="font-size:11px;margin-top:5px;"><summary style="cursor:pointer;color:var(--muted);margin-bottom:4px;">↩️ Буцаалтын дэлгэрэнгүй</summary>
+          <div style="max-height:90px;overflow-y:auto;margin-top:4px;"><table style="width:100%;"><thead><tr><th style="text-align:left;">Огноо</th><th>Бараа</th><th class="num">Тоо</th><th class="num">Дүн</th></tr></thead><tbody>${retRows}</tbody></table></div></details>
+        <details style="font-size:11px;margin-top:5px;"><summary style="cursor:pointer;color:var(--muted);margin-bottom:4px;">💰 Төлбөрийн дэлгэрэнгүй</summary>
+          <div style="max-height:90px;overflow-y:auto;margin-top:4px;"><table style="width:100%;"><thead><tr><th style="text-align:left;">Огноо</th><th colspan="2">Тэмдэглэл</th><th class="num">Дүн</th></tr></thead><tbody>${payRows}</tbody></table></div></details>`;
+      box.style.display='block';
+    };
+  },50);
+};
+
+// ── Дэлгэрэнгүй харах + хэвлэх ──────────────────────────────
+window.settleDetails=async id=>{
+  const d=await api('/api/settlements/'+id+'/details');
+  if(!d||!d.settlement){alert('Олдсонгүй');return;}
+  const s=d.settlement;
+  const ps=String(s.periodStart).slice(0,10);
+  const pe=String(s.periodEnd).slice(0,10);
+  const ca=s.closedAt?String(s.closedAt).slice(0,16).replace('T',' '):'—';
+  const delRows=(d.deliveries||[]).map(x=>`<tr><td>${String(x.deliveryDate).slice(0,10)}</td><td>${x.pName||'—'}</td><td class="num">${fmt(x.quantity)}</td><td class="num">${fmtMoney(x.totalPrice)}</td></tr>`).join('')||'<tr><td colspan="4" style="color:var(--muted);text-align:center;">Хүргэлт алга</td></tr>';
+  const retRows=(d.returns||[]).map(x=>`<tr><td>${String(x.returnDate).slice(0,10)}</td><td>${x.pName||'—'}</td><td class="num">${fmt(x.quantity)}</td><td class="num">${fmtMoney(x.totalAmount)}</td></tr>`).join('')||'<tr><td colspan="4" style="color:var(--muted);text-align:center;">Буцаалт алга</td></tr>';
+  const payRows=(d.payments||[]).map(x=>`<tr><td>${String(x.paymentDate).slice(0,10)}</td><td colspan="2">${x.notes||'—'}</td><td class="num">${fmtMoney(x.amount)}</td></tr>`).join('')||'<tr><td colspan="4" style="color:var(--muted);text-align:center;">Төлбөр алга</td></tr>';
+
+  openModal({title:'📄 Тооцооны дэлгэрэнгүй',sub:`${s.storeName} · ${ps} → ${pe}`,
+    hideSave:true,
+    body:`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;">
+      <div style="background:var(--accent-lt);padding:10px;border-radius:8px;text-align:center;"><div style="font-size:10px;color:var(--muted);">Хүргэлт</div><div style="font-weight:700;">${fmtMoney(s.totalDelivered)}</div></div>
+      <div style="background:var(--danger-lt);padding:10px;border-radius:8px;text-align:center;"><div style="font-size:10px;color:var(--muted);">Буцаалт</div><div style="font-weight:700;">${fmtMoney(s.totalReturned)}</div></div>
+      <div style="background:var(--info-lt);padding:10px;border-radius:8px;text-align:center;"><div style="font-size:10px;color:var(--muted);">Төлбөр</div><div style="font-weight:700;">${fmtMoney(s.totalPaid)}</div></div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">
+      Хаасан: <b>${s.closedBy||'—'}</b> · ${ca}${s.notes?' · '+s.notes:''}
+    </div>
+    <button class="btn ghost sm" style="margin-bottom:12px;" onclick="settlePrint(${id})">🖨️ Хэвлэх / PDF</button>
+    <div style="font-weight:700;font-size:12px;margin-bottom:4px;">🚚 Хүргэлт</div>
+    <div style="max-height:120px;overflow-y:auto;margin-bottom:10px;"><table style="width:100%;font-size:12px;"><thead><tr><th style="text-align:left;">Огноо</th><th style="text-align:left;">Бараа</th><th class="num">Тоо</th><th class="num">Дүн</th></tr></thead><tbody>${delRows}</tbody></table></div>
+    <div style="font-weight:700;font-size:12px;margin-bottom:4px;">↩️ Буцаалт</div>
+    <div style="max-height:100px;overflow-y:auto;margin-bottom:10px;"><table style="width:100%;font-size:12px;"><thead><tr><th style="text-align:left;">Огноо</th><th style="text-align:left;">Бараа</th><th class="num">Тоо</th><th class="num">Дүн</th></tr></thead><tbody>${retRows}</tbody></table></div>
+    <div style="font-weight:700;font-size:12px;margin-bottom:4px;">💰 Төлбөр</div>
+    <div style="max-height:100px;overflow-y:auto;"><table style="width:100%;font-size:12px;"><thead><tr><th style="text-align:left;">Огноо</th><th style="text-align:left;" colspan="2">Тэмдэглэл</th><th class="num">Дүн</th></tr></thead><tbody>${payRows}</tbody></table></div>`});
+};
+
+// ── Хэвлэх (print layout) ────────────────────────────────────
+window.settlePrint=async id=>{
+  const d=await api('/api/settlements/'+id+'/details');
+  if(!d||!d.settlement){alert('Олдсонгүй');return;}
+  const s=d.settlement;
+  const ps=String(s.periodStart).slice(0,10);
+  const pe=String(s.periodEnd).slice(0,10);
+  const ca=s.closedAt?String(s.closedAt).slice(0,16).replace('T',' '):'—';
+  const delRows=(d.deliveries||[]).map((x,i)=>`<tr><td>${i+1}</td><td>${String(x.deliveryDate).slice(0,10)}</td><td>${x.pName||'—'}</td><td style="text-align:right;">${fmt(x.quantity)}</td><td style="text-align:right;">${fmtMoney(x.unitPrice||0)}</td><td style="text-align:right;"><b>${fmtMoney(x.totalPrice)}</b></td></tr>`).join('');
+  const retRows=(d.returns||[]).map((x,i)=>`<tr><td>${i+1}</td><td>${String(x.returnDate).slice(0,10)}</td><td>${x.pName||'—'}</td><td style="text-align:right;">${fmt(x.quantity)}</td><td style="text-align:right;">${fmtMoney(x.unitPrice||0)}</td><td style="text-align:right;"><b>${fmtMoney(x.totalAmount)}</b></td></tr>`).join('');
+  const payRows=(d.payments||[]).map((x,i)=>`<tr><td>${i+1}</td><td>${String(x.paymentDate).slice(0,10)}</td><td>${x.notes||'—'}</td><td style="text-align:right;"><b>${fmtMoney(x.amount)}</b></td></tr>`).join('');
+  const html=`<!DOCTYPE html><html lang="mn"><head><meta charset="UTF-8"><title>Тооцооны хуудас — ${s.storeName}</title>
+  <style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:'Segoe UI',Arial,sans-serif;font-size:12px;color:#1a1a1a;padding:20px;}
+  h1{font-size:18px;margin-bottom:4px;}h2{font-size:13px;margin:14px 0 6px;border-bottom:2px solid #2d7a4f;padding-bottom:3px;color:#2d7a4f;}
+  .meta{font-size:11px;color:#666;margin-bottom:14px;}
+  .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+  .sum-box{border:1px solid #ddd;border-radius:6px;padding:10px;text-align:center;}
+  .sum-box .lbl{font-size:10px;color:#888;margin-bottom:3px;}.sum-box .val{font-size:14px;font-weight:700;}
+  table{width:100%;border-collapse:collapse;margin-bottom:14px;}th,td{padding:6px 8px;border:1px solid #ddd;font-size:11px;}
+  th{background:#f0f4f1;font-weight:600;text-align:left;}
+  .footer{margin-top:30px;display:grid;grid-template-columns:1fr 1fr;gap:40px;}
+  .sig{border-top:1px solid #333;padding-top:6px;font-size:11px;color:#666;}
+  @media print{body{padding:10px;}}</style></head>
+  <body>
+  <h1>📄 ТООЦООНЫ ХУУДАС</h1>
+  <div class="meta">
+    <b>Дэлгүүр:</b> ${s.storeName||'—'} ${s.storeCity?'('+s.storeCity+')':''} ${s.storeManager?' · '+s.storeManager:''}<br>
+    <b>Хугацаа:</b> ${ps} — ${pe}<br>
+    <b>Хаасан:</b> ${s.closedBy||'—'} · ${ca}${s.notes?' · Тэмдэглэл: '+s.notes:''}
+  </div>
+  <div class="summary">
+    <div class="sum-box"><div class="lbl">Нийт хүргэлт</div><div class="val">${fmtMoney(s.totalDelivered)}</div></div>
+    <div class="sum-box"><div class="lbl">Нийт буцаалт</div><div class="val" style="color:#c13a3a;">${fmtMoney(s.totalReturned)}</div></div>
+    <div class="sum-box"><div class="lbl">Авсан төлбөр</div><div class="val" style="color:#2d7a4f;">${fmtMoney(s.totalPaid)}</div></div>
+    <div class="sum-box"><div class="lbl">үлдэгдэл</div><div class="val" style="color:${Math.abs(Number(s.finalDebt)||0)<0.01?'#2d7a4f':'#c13a3a'};">${fmtMoney(s.finalDebt)}</div></div>
+  </div>
+  ${delRows?`<h2>🚚 Хүргэлт</h2><table><thead><tr><th>#</th><th>Огноо</th><th>Бараа</th><th style="text-align:right;">Тоо</th><th style="text-align:right;">Нэгж үнэ</th><th style="text-align:right;">Нийт</th></tr></thead><tbody>${delRows}</tbody></table>`:''}
+  ${retRows?`<h2>↩️ Буцаалт</h2><table><thead><tr><th>#</th><th>Огноо</th><th>Бараа</th><th style="text-align:right;">Тоо</th><th style="text-align:right;">Нэгж үнэ</th><th style="text-align:right;">Нийт</th></tr></thead><tbody>${retRows}</tbody></table>`:''}
+  ${payRows?`<h2>💰 Төлбөр</h2><table><thead><tr><th>#</th><th>Огноо</th><th>Тэмдэглэл</th><th style="text-align:right;">Дүн</th></tr></thead><tbody>${payRows}</tbody></table>`:''}
+  <div class="footer">
+    <div><div class="sig">Нийлүүлэгч гарын үсэг: ________________________</div></div>
+    <div><div class="sig">Дэлгүүрийн гарын үсэг: ________________________</div></div>
+  </div>
+  <script>window.onload=()=>window.print();<\/script>
+  </body></html>`;
+  const w=window.open('','_blank','width=800,height=700');
+  w.document.write(html); w.document.close();
+};
+
+window.settleReopen=async id=>{
+  if(!confirm('Энэ тооцоог буцаан нээх үү?\nГүйлгээнүүд эргэн нээлттэй болж, үлдэгдэл өрд буцаан тооцогдоно.'))return;
+  const r=await api('/api/settlements/'+id+'/reopen',{method:'DELETE'});
+  if(r.success){loadSettlements();}else{alert('Алдаа: '+(r.error||''));}
+};
+
+// DELIVERIES
+async function loadDeliveries(){
+  const p=new URLSearchParams();['from:dFrom','to:dTo','storeID:dStore','productID:dProduct'].forEach(s=>{const[k,id]=s.split(':');if($(id)&&$(id).value)p.append(k,$(id).value);});
+  const data=await api('/api/deliveries?'+p.toString());
+  $('dlBadge').textContent=(data.length||0)+' бичлэг';
+  document.querySelector('#dlTable tbody').innerHTML=!data.length
+    ?'<tr><td colspan="8"><div class="empty-state"><div class="empty-ico">🚚</div><p>Хүргэлт байхгүй</p></div></td></tr>'
+    :data.map(d=>`<tr><td>${d.deliveryDate?d.deliveryDate.slice(0,10):'—'}</td><td>${d.storeName||'—'}</td><td><b>${d.pName||'—'}</b></td><td class="num">${fmt(d.quantity)}</td><td class="num">${fmtMoney(d.unitPrice)}</td><td class="num"><b>${fmtMoney(d.totalPrice)}</b></td><td>${d.employeeName||'—'}</td><td class="right" style="display:flex;gap:4px;justify-content:flex-end;"><button class="icon-btn" onclick='deliveryModal(${JSON.stringify(d)})'>✏</button><button class="icon-btn del" onclick="delDelivery(${d.deliveryID})">×</button></td></tr>`).join('');
+}
+$('addDeliveryBtn').onclick=()=>deliveryModal(null);
+function deliveryModal(d){
+  openModal({title:d?'Хүргэлт засах':'Хүргэлт нэмэх',sub:'',
+    body:`<div class="mrow"><div class="mfield"><label>Дэлгүүр *</label><select id="dlS"><option value="">—</option>${optionsCache.stores.map(s=>`<option value="${s.storeID}"${d&&d.storeID==s.storeID?' selected':''}>${s.sName}</option>`).join('')}</select></div><div class="mfield"><label>Бараа *</label><select id="dlP"><option value="">—</option>${optionsCache.products.map(p=>`<option value="${p.productID}"${d&&d.productID==p.productID?' selected':''}>${p.pName}</option>`).join('')}</select></div></div>
+    <div class="mrow"><div class="mfield"><label>Тоо ш *</label><input type="number" id="dlQ" value="${d?d.quantity:1}" min="0"></div><div class="mfield"><label>Нэгж үнэ *</label><input type="number" id="dlPr" value="${d?d.unitPrice:0}" min="0"></div></div>
+    <div class="mrow"><div class="mfield"><label>Огноо</label><input type="date" id="dlD" value="${d&&d.deliveryDate?d.deliveryDate.slice(0,10):localDateStr()}"></div><div class="mfield"><label>Ажилтан</label><select id="dlE"><option value="">—</option>${optionsCache.employees.map(e=>`<option value="${e.employeeID}"${d&&d.employeeID==e.employeeID?' selected':''}>${e.eName}</option>`).join('')}</select></div></div>
+    <div class="mfield"><label>Тэмдэглэл</label><input id="dlN" value="${d?d.notes||'':''}" placeholder="..."></div>`,
+    onSave:async()=>{if(!$('dlS').value||!$('dlP').value){alert('Дэлгүүр болон бараа сонгоно уу');return false;}const body={storeID:$('dlS').value,productID:$('dlP').value,employeeID:$('dlE').value||null,quantity:Number($('dlQ').value)||0,unitPrice:Number($('dlPr').value)||0,deliveryDate:$('dlD').value||null,notes:$('dlN').value||null};const r=d?await api('/api/deliveries/'+d.deliveryID,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}):await api('/api/deliveries',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(r.success){loadDeliveries();return true;}alert('Алдаа: '+(r.error||''));return false;}});
+}
+window.delDelivery=id=>showDeleteOptions('Хүргэлт',
+  async()=>{const r=await api('/api/deliveries/'+id,{method:'DELETE'});if(r.success)loadDeliveries();},
+  async()=>{const r=await api('/api/deliveries/all',{method:'DELETE'});if(r.success)loadDeliveries();});
+
+// RETURNS
+async function loadReturns(){
+  const p=new URLSearchParams();['from:rFrom','to:rTo','storeID:rStore','productID:rProduct'].forEach(s=>{const[k,id]=s.split(':');if($(id)&&$(id).value)p.append(k,$(id).value);});
+  const data=await api('/api/returns?'+p.toString());
+  $('retBadge').textContent=(data.length||0)+' бичлэг';
+  document.querySelector('#retTable tbody').innerHTML=!data.length
+    ?'<tr><td colspan="8"><div class="empty-state"><div class="empty-ico">🔄</div><p>Буцаалт байхгүй</p></div></td></tr>'
+    :data.map(r=>`<tr><td>${r.returnDate?r.returnDate.slice(0,10):'—'}</td><td>${r.storeName||'—'}</td><td><b>${r.pName||'—'}</b></td><td class="num">${fmt(r.quantity)}</td><td class="num">${fmtMoney(r.unitPrice)}</td><td class="num"><b>${fmtMoney(r.totalAmount)}</b></td><td>${r.reason||'—'}</td><td class="right" style="display:flex;gap:4px;justify-content:flex-end;"><button class="icon-btn" onclick='returnModal(${JSON.stringify(r)})'>✏</button><button class="icon-btn del" onclick="delReturn(${r.returnID})">×</button></td></tr>`).join('');
+}
+$('addReturnBtn').onclick=()=>returnModal(null);
+function returnModal(r){
+  openModal({title:r?'Буцаалт засах':'Буцаалт нэмэх',sub:'↩️ Буцаалтын агуулахд бүртгэгдэнэ — Үндсэн агуулахд нөлөөгүй',
+    body:`<div class="mrow"><div class="mfield"><label>Дэлгүүр *</label><select id="rtS"><option value="">—</option>${optionsCache.stores.map(s=>`<option value="${s.storeID}"${r&&r.storeID==s.storeID?' selected':''}>${s.sName}</option>`).join('')}</select></div><div class="mfield"><label>Бараа *</label><select id="rtP"><option value="">—</option>${optionsCache.products.map(p=>`<option value="${p.productID}"${r&&r.productID==p.productID?' selected':''}>${p.pName}</option>`).join('')}</select></div></div>
+    <div class="mrow"><div class="mfield"><label>Тоо ш *</label><input type="number" id="rtQ" value="${r?r.quantity:1}" min="0"></div><div class="mfield"><label>Нэгж үнэ *</label><input type="number" id="rtPr" value="${r?r.unitPrice:0}" min="0"></div></div>
+    <div class="mfield"><label>Огноо</label><input type="date" id="rtD" value="${r&&r.returnDate?r.returnDate.slice(0,10):localDateStr()}"></div>
+    <div class="mfield"><label>Шалтгаан</label><textarea id="rtR" placeholder="Буцаасан шалтгаан...">${r?r.reason||'':''}</textarea></div>`,
+    onSave:async()=>{if(!$('rtS').value||!$('rtP').value){alert('Дэлгүүр болон бараа сонгоно уу');return false;}const body={storeID:$('rtS').value,productID:$('rtP').value,employeeID:null,quantity:Number($('rtQ').value)||0,unitPrice:Number($('rtPr').value)||0,returnDate:$('rtD').value||null,reason:$('rtR').value||null};const url=r?'/api/returns/'+r.returnID:'/api/returns';const method=r?'PUT':'POST';const res=await api(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(res.success){loadReturns();return true;}alert('Алдаа: '+(res.error||''));return false;}});
+}
+window.delReturn=id=>showDeleteOptions('Буцаалт',
+  async()=>{const r=await api('/api/returns/'+id,{method:'DELETE'});if(r.success)loadReturns();},
+  async()=>{const r=await api('/api/returns/all',{method:'DELETE'});if(r.success)loadReturns();});
+
+// REPORTS
+async function previewReport(){
+  const p=new URLSearchParams();if($('rSearch').value)p.append('search',$('rSearch').value);if($('rFromR').value)p.append('from',$('rFromR').value);if($('rToR').value)p.append('to',$('rToR').value);if($('rStoreR').value)p.append('storeID',$('rStoreR').value);
+  const data=await api('/api/deliveries?'+p.toString());
+  document.querySelector('#reportTable tbody').innerHTML=!data.length?'<tr><td colspan="7"><div class="empty-state"><div class="empty-ico">📋</div><p>Мэдээлэл байхгүй</p></div></td></tr>':data.map((d,i)=>`<tr><td>${i+1}</td><td>${d.deliveryDate?d.deliveryDate.slice(0,10):'—'}</td><td>${d.storeName||'—'}</td><td>${d.pName||'—'}</td><td class="num">${fmt(d.quantity)}</td><td class="num">${fmtMoney(d.unitPrice)}</td><td class="num"><b>${fmtMoney(d.totalPrice)}</b></td></tr>`).join('');
+}
+function downloadCSV(){const p=new URLSearchParams();if($('rSearch').value)p.append('search',$('rSearch').value);if($('rFromR').value)p.append('from',$('rFromR').value);if($('rToR').value)p.append('to',$('rToR').value);if($('rStoreR').value)p.append('storeID',$('rStoreR').value);window.open('/api/export/csv?'+p.toString());}
+
+// USERS
+async function loadUsers(){
+  const data=await api('/api/users');
+  document.querySelector('#userTable tbody').innerHTML=!data.length?'<tr><td colspan="4"><div class="empty-state"><div class="empty-ico">👤</div><p>Хэрэглэгч байхгүй</p></div></td></tr>':data.map(u=>`<tr><td><b>${u.userName}</b></td><td><span class="badge ${u.role==='admin'?'ok':'muted'}">${u.role==='admin'?'Админ':'Борлуулагч'}</span></td><td>${u.eName||'—'}</td><td class="right" style="display:flex;gap:4px;justify-content:flex-end;"><button class="icon-btn" onclick='userModal(${JSON.stringify(u)})'>✏</button><button class="icon-btn del" onclick="delUser(${u.userID},'${u.userName}')">×</button></td></tr>`).join('');
+}
+function userModal(u){
+  openModal({title:u?'Хэрэглэгч засах':'Хэрэглэгч нэмэх',sub:'',
+    body:`<div class="mfield"><label>Хэрэглэгчийн нэр *</label><input id="uN" value="${u?u.userName:''}" placeholder="Нэр"></div>
+    <div class="mfield"><label>Нууц үг ${u?'(хоосон бол өөрчлөхгүй)':'*'}</label><input type="password" id="uP" placeholder="Нууц үг"></div>
+    <div class="mrow"><div class="mfield"><label>Эрх</label><select id="uR"><option value="staff"${!u||u.role==='staff'?' selected':''}>Борлуулагч</option><option value="admin"${u&&u.role==='admin'?' selected':''}>Админ</option></select></div><div class="mfield"><label>Ажилтан</label><select id="uE"><option value="">—</option>${optionsCache.employees.map(e=>`<option value="${e.employeeID}"${u&&u.employeeID==e.employeeID?' selected':''}>${e.eName}</option>`).join('')}</select></div></div>`,
+    onSave:async()=>{const nm=$('uN').value.trim();if(!nm){alert('Нэр оруулна уу');return false;}const body={userName:nm,password:$('uP').value||undefined,role:$('uR').value,employeeID:$('uE').value||null};const r=u?await api('/api/users/'+u.userID,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}):await api('/api/users',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(r.success){loadUsers();return true;}alert('Алдаа: '+(r.error||''));return false;}});
+}
+window.delUser=(id,name)=>{
+  const me=JSON.parse(localStorage.getItem('user')||'{}');
+  if(me.userName===name){alert('Өөрийнхөө эрхийг устгаж болохгүй!');return;}
+  showDeleteOptions(`Хэрэглэгч "${name}"`,
+    async()=>{const r=await api('/api/users/'+id,{method:'DELETE'});if(r.success)loadUsers();},
+    async()=>{const r=await api('/api/users/all?keepUser='+encodeURIComponent(me.userName),{method:'DELETE'});if(r.success)loadUsers();});
+};
+
+// INIT
+(async()=>{ await loadOptions(); await loadDashboard(); })();
+</script>
+</body>
+</html>

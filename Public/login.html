@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vendor — Нэвтрэх</title>
+<style>
+  :root {
+    --bg:#fff; --paper:#fff; --ink:#0f1f17; --muted:#6b7770;
+    --line:#d8dcd6; --soft:#f4f6f3; --accent:#2d5a3d; --accent-2:#3d7a52;
+    --sky-1:#87b5d6; --sky-2:#c8dceb; --hill-1:#4a7d5c; --hill-2:#6b9a78; --hill-3:#8fb89c;
+  }
+  [data-theme="dark"] {
+    --bg:#0a0f0c; --paper:#131a16; --ink:#e8efe9; --muted:#8a9690;
+    --line:#2a352e; --soft:#1a221d; --accent:#7ab87a; --accent-2:#5fa260;
+    --sky-1:#2a3d52; --sky-2:#1e2a38; --hill-1:#1f3a2a; --hill-2:#2a4a35; --hill-3:#355a44;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; font-family:Arial,sans-serif; }
+  body {
+    background:var(--bg); color:var(--ink); min-height:100vh;
+    display:flex; align-items:center; justify-content:center; padding:20px;
+    transition:background .3s, color .3s;
+  }
+  .theme-btn {
+    position:fixed; top:20px; right:20px;
+    background:var(--paper); border:1px solid var(--line); color:var(--ink);
+    width:40px; height:40px; cursor:pointer; font-size:16px;
+    border-radius:50%; display:flex; align-items:center; justify-content:center; z-index:10;
+  }
+  .theme-btn:hover { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .wrap {
+    width:1000px; max-width:100%; background:var(--paper);
+    border:1px solid var(--line); border-radius:16px; overflow:hidden;
+    display:grid; grid-template-columns:1fr 1fr;
+    box-shadow:0 12px 40px rgba(0,0,0,.08); min-height:560px;
+  }
+  @media (max-width:800px) { .wrap { grid-template-columns:1fr; } .scene { display:none; } }
+  .scene {
+    position:relative; overflow:hidden;
+    background:linear-gradient(180deg, var(--sky-1) 0%, var(--sky-2) 60%, #d8e8d4 100%);
+  }
+  [data-theme="dark"] .scene { background:linear-gradient(180deg, var(--sky-1) 0%, var(--sky-2) 60%, #1a2620 100%); }
+  .scene svg { width:100%; height:100%; display:block; }
+  .scene-text {
+    position:absolute; top:50px; left:40px; right:40px; color:#fff;
+    z-index:5; text-shadow:0 2px 12px rgba(0,0,0,.35);
+  }
+  .scene-h { font-size:38px; font-weight:700; line-height:1.1; margin-bottom:12px; }
+  .scene-h em { font-style:italic; font-weight:400; }
+  .scene-p { font-size:13px; line-height:1.6; opacity:.95; max-width:360px; }
+  .scene-pill {
+    display:inline-block; margin-top:24px;
+    background:rgba(255,255,255,.18); backdrop-filter:blur(6px);
+    border:1px solid rgba(255,255,255,.3); color:#fff;
+    padding:6px 14px; border-radius:100px;
+    font-size:11px; letter-spacing:1.5px; text-transform:uppercase;
+  }
+  .form-side { padding:56px; display:flex; flex-direction:column; justify-content:center; }
+  .brand-tag { text-align:center; font-size:10px; text-transform:uppercase; letter-spacing:4px; color:var(--muted); margin-bottom:30px; font-style:italic; }
+  h1.welcome { font-size:28px; font-weight:700; text-align:center; margin-bottom:8px; }
+  h1.welcome em { color:var(--accent); font-style:italic; font-weight:400; }
+  .sub { text-align:center; color:var(--muted); font-size:13px; margin-bottom:32px; }
+  .field { position:relative; margin-bottom:14px; }
+  .field .icon { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:14px; }
+  .field input {
+    width:100%; padding:13px 14px 13px 40px;
+    border:1px solid var(--line); border-radius:10px;
+    background:var(--paper); color:var(--ink);
+    font-family:Arial,sans-serif; font-size:14px; outline:none;
+  }
+  .field input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(45,90,61,.12); }
+  [data-theme="dark"] .field input:focus { box-shadow:0 0 0 3px rgba(122,184,122,.15); }
+  .submit {
+    width:100%; padding:14px; background:var(--ink); color:var(--paper);
+    border:none; border-radius:10px; font-family:Arial,sans-serif;
+    font-size:14px; font-weight:600; cursor:pointer;
+  }
+  .submit:hover { background:var(--accent); }
+  .submit:disabled { opacity:.6; cursor:not-allowed; }
+  .err { background:#c14545; color:#fff; padding:10px; text-align:center; font-size:12px; border-radius:8px; margin-bottom:14px; display:none; }
+  .info { background:rgba(58,125,158,.15); color:var(--accent); border:1px solid var(--accent); padding:10px; text-align:center; font-size:12px; border-radius:8px; margin-bottom:14px; display:none; }
+  .hint { text-align:center; margin-top:22px; font-size:12px; color:var(--muted); }
+  .hint code { background:var(--soft); padding:3px 8px; border-radius:4px; font-family:'Courier New',monospace; font-size:11px; color:var(--accent); }
+  .hint-row { margin-top:6px; }
+  .clear-btn {
+    background:none; border:none; color:var(--muted); font-size:11px;
+    cursor:pointer; margin-top:14px; text-decoration:underline;
+    font-family:Arial,sans-serif; width:100%; text-align:center;
+  }
+  @keyframes float { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-8px); } }
+  .bird { animation:float 4s ease-in-out infinite; }
+  .bird:nth-child(2) { animation-delay:-1.5s; }
+</style>
+</head>
+<body>
+<button class="theme-btn" id="themeBtn" title="Theme">◐</button>
+
+<div class="wrap">
+  <div class="scene">
+    <svg viewBox="0 0 500 600" preserveAspectRatio="xMidYMid slice">
+      <circle cx="380" cy="120" r="42" fill="#ffe9b8" opacity="0.9"/>
+      <circle cx="380" cy="120" r="60" fill="#ffe9b8" opacity="0.25"/>
+      <path d="M 0 380 L 80 280 L 160 340 L 240 240 L 320 320 L 400 250 L 500 310 L 500 600 L 0 600 Z" fill="var(--hill-1)" opacity="0.55"/>
+      <path d="M 0 440 L 100 360 L 200 410 L 300 350 L 400 400 L 500 370 L 500 600 L 0 600 Z" fill="var(--hill-2)" opacity="0.75"/>
+      <path d="M 0 500 L 120 440 L 240 480 L 360 430 L 500 460 L 500 600 L 0 600 Z" fill="var(--hill-3)"/>
+      <path d="M 0 540 L 500 540 L 500 600 L 0 600 Z" fill="var(--accent)"/>
+      <g>
+        <ellipse cx="80" cy="490" rx="14" ry="22" fill="var(--accent)" opacity="0.8"/>
+        <rect x="78" y="500" width="4" height="14" fill="#3a2a1a"/>
+        <ellipse cx="180" cy="510" rx="18" ry="26" fill="var(--accent-2)" opacity="0.85"/>
+        <rect x="178" y="525" width="4" height="16" fill="#3a2a1a"/>
+        <ellipse cx="340" cy="500" rx="16" ry="24" fill="var(--accent)" opacity="0.8"/>
+        <rect x="338" y="513" width="4" height="14" fill="#3a2a1a"/>
+        <ellipse cx="430" cy="515" rx="20" ry="28" fill="var(--accent-2)" opacity="0.85"/>
+        <rect x="428" y="530" width="4" height="18" fill="#3a2a1a"/>
+      </g>
+      <g fill="#fff" opacity="0.85">
+        <ellipse cx="100" cy="100" rx="40" ry="14"/>
+        <ellipse cx="130" cy="92" rx="28" ry="12"/>
+        <ellipse cx="250" cy="140" rx="34" ry="11"/>
+      </g>
+      <g class="bird" stroke="#fff" stroke-width="2" fill="none" opacity="0.9">
+        <path d="M 200 200 Q 207 195, 214 200 Q 221 195, 228 200"/>
+      </g>
+      <g class="bird" stroke="#fff" stroke-width="2" fill="none" opacity="0.9">
+        <path d="M 290 180 Q 295 176, 300 180 Q 305 176, 310 180"/>
+      </g>
+      <g>
+        <circle cx="50" cy="565" r="2.5" fill="#fff"/>
+        <circle cx="130" cy="575" r="2.5" fill="#fff"/>
+        <circle cx="220" cy="568" r="2.5" fill="#fff"/>
+        <circle cx="300" cy="578" r="2.5" fill="#fde68a"/>
+        <circle cx="390" cy="570" r="2.5" fill="#fff"/>
+        <circle cx="460" cy="582" r="2.5" fill="#fde68a"/>
+      </g>
+    </svg>
+    <div class="scene-text">
+      <div class="scene-h">Дэлгүүрийн<br><em>удирдлага</em></div>
+      <div class="scene-p">Борлуулалт, дэлгүүр, агуулахын үлдэгдлээ нэг газраас хянаарай.</div>
+      <div class="scene-pill">Vendor Console</div>
+    </div>
+  </div>
+
+  <div class="form-side">
+    <div class="brand-tag">— Vendor —</div>
+    <h1 class="welcome">Тавтай <em>морилно уу</em></h1>
+    <div class="sub">Бүртгэлийн мэдээллээ оруулан үргэлжлүүлнэ үү.</div>
+
+    <div class="info" id="info"></div>
+    <div class="err" id="err"></div>
+
+    <div class="field">
+      <span class="icon">👤</span>
+      <input type="text" id="userName" placeholder="Хэрэглэгчийн нэр" autocomplete="username">
+    </div>
+    <div class="field">
+      <span class="icon">🔒</span>
+      <input type="password" id="password" placeholder="Нууц үг" autocomplete="current-password">
+    </div>
+
+    <button class="submit" id="loginBtn">Нэвтрэх</button>
+
+    <div class="hint">
+      <div>Happy day:</div>
+      <div class="hint-row">Админ: <code></code> / <code></code></div>
+      <div class="hint-row"> <code></code> / <code></code></div>
+    </div>
+
+    <button class="clear-btn" id="clearBtn">⟲ Хадгалсан мэдээллийг цэвэрлэх</button>
+  </div>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const root = document.documentElement;
+  root.setAttribute('data-theme', localStorage.getItem('theme') || 'light');
+  $('themeBtn').onclick = () => {
+    const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+  };
+
+  $('clearBtn').onclick = () => {
+    localStorage.removeItem('user');
+    showInfo('Хадгалсан мэдээлэл устгагдлаа. Шинээр нэвтэрнэ үү.');
+  };
+
+  function showErr(msg) {
+    $('err').textContent = msg;
+    $('err').style.display = 'block';
+    $('info').style.display = 'none';
+  }
+  function showInfo(msg) {
+    $('info').textContent = msg;
+    $('info').style.display = 'block';
+    $('err').style.display = 'none';
+  }
+
+  // ⭐ Auto-redirect — зөвхөн хэрэглэгч байвал шууд оруулах
+  const saved = localStorage.getItem('user');
+  if (saved) {
+    try {
+      const u = JSON.parse(saved);
+      if (u && u.userName && u.role) {
+        showInfo(u.userName + ' нэрээр нэвтэрсэн байна. Шилжиж байна...');
+        setTimeout(() => {
+          if (u.role === 'admin') window.location.href = 'dashboard.html';
+          else window.location.href = 'mainpage.html';
+        }, 600);
+      } else {
+        localStorage.removeItem('user');
+      }
+    } catch(e) {
+      localStorage.removeItem('user');
+    }
+  }
+
+  async function doLogin() {
+    const userName = $('userName').value.trim();
+    const password = $('password').value;
+    if (!userName || !password) { showErr('Бүх талбарыг бөглөнө үү'); return; }
+    $('loginBtn').disabled = true;
+    $('loginBtn').textContent = 'Нэвтрэх...';
+    try {
+      const r = await fetch('/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userName, password })
+      });
+      if (!r.ok) { showErr('Сервер алдаа: ' + r.status); return; }
+      const d = await r.json();
+      if (d.success) {
+        localStorage.setItem('user', JSON.stringify({
+          userName: d.userName,
+          role: d.role,
+          employeeID: d.employeeID,
+          eName: d.eName
+        }));
+        showInfo('Амжилттай! Шилжиж байна...');
+        setTimeout(() => {
+          if (d.role === 'admin') window.location.href = 'dashboard.html';
+          else window.location.href = 'mainpage.html';
+        }, 400);
+      } else {
+        showErr(d.error || 'Нэр эсвэл нууц үг буруу');
+      }
+    } catch(e) {
+      showErr('Серверт холбогдож чадсангүй. node server.js ажиллаж байгаа эсэхийг шалгана уу.');
+    } finally {
+      $('loginBtn').disabled = false;
+      $('loginBtn').textContent = 'Нэвтрэх';
+    }
+  }
+
+  $('loginBtn').onclick = doLogin;
+  $('password').addEventListener('keypress', e => { if (e.key === 'Enter') doLogin(); });
+  $('userName').addEventListener('keypress', e => { if (e.key === 'Enter') doLogin(); });
+</script>
+</body>
+</html>
